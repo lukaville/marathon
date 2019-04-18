@@ -175,7 +175,7 @@ class AndroidDeviceProvider : DeviceProvider, CoroutineScope {
     private fun AndroidDebugBridge.hasDevices(): Boolean = devices.isNotEmpty()
 
     override suspend fun terminate() {
-        AndroidDebugBridge.disconnectBridge()
+//        AndroidDebugBridge.disconnectBridge()
         AndroidDebugBridge.terminate()
         bootWaitContext.close()
         channel.close()
