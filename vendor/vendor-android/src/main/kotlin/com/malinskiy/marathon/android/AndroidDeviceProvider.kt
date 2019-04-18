@@ -176,7 +176,7 @@ class AndroidDeviceProvider : DeviceProvider, CoroutineScope {
 
     override suspend fun terminate() {
 //        AndroidDebugBridge.disconnectBridge()
-        AndroidDebugBridge.terminate()
+//        AndroidDebugBridge.terminate()
         bootWaitContext.close()
         channel.close()
     }
