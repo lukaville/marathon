@@ -8,6 +8,7 @@ import com.malinskiy.marathon.android.AndroidDevice
 import rx.Observable
 import rx.Single
 import java.io.File
+import java.nio.file.Files
 
 data class AdbDeviceTestRun(
     val adbDevice: AndroidDevice,
@@ -46,7 +47,10 @@ fun AndroidDevice.runTests(
 ): Single<AdbDeviceTestRun> {
 
     val adbDevice = this
-    val logsDir = File.createTempFile("logs", "android").apply { deleteOnExit() }
+    val logsDir =  Files.createTempDirectory("adb_logs").toFile().apply {
+        mkdirs()
+        deleteOnExit()
+    }
     val instrumentationOutputFile = File(logsDir, "instrumentation.output")
 
     val runTests = process(
