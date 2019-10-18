@@ -75,6 +75,8 @@ class AndroidDeviceTestRunner(private val device: AndroidDevice) {
         info: InstrumentationInfo,
         testBatch: TestBatch
     ) {
+        val time = System.nanoTime()
+
         val testPackageName = info.instrumentationPackage
         val testRunnerClass = info.testRunnerClass
 
@@ -105,6 +107,9 @@ class AndroidDeviceTestRunner(private val device: AndroidDevice) {
 
             listener.testEnded(testIdentifier, emptyMap())
         }
+
+        val elapsedMillis = (System.nanoTime() - time) / 1000
+        listener.testRunEnded(elapsedMillis, emptyMap())
     }
 
     private fun notifyIgnoredTest(ignoredTests: List<Test>, listeners: ITestRunListener) {
