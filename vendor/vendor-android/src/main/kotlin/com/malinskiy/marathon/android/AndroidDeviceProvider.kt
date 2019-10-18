@@ -142,17 +142,6 @@ class AndroidDeviceProvider(
         AndroidDebugBridge.addDeviceChangeListener(listener)
         adb = AndroidDebugBridge.createBridge(absolutePath, false)
 
-        println("Reconnecting devices")
-        try {
-            Runtime.getRuntime().exec(arrayOf(absolutePath, "connect", "192.168.17.98:5001"))
-            Runtime.getRuntime().exec(arrayOf(absolutePath, "connect", "192.168.17.98:5002"))
-            Runtime.getRuntime().exec(arrayOf(absolutePath, "connect", "192.168.17.98:5003"))
-            Runtime.getRuntime().exec(arrayOf(absolutePath, "connect", "192.168.17.98:5004"))
-            Runtime.getRuntime().exec(arrayOf(absolutePath, "connect", "192.168.17.98:5105"))
-        } catch (exception: Exception) {
-            exception.printStackTrace()
-        }
-
         var getDevicesCountdown = DEFAULT_DDM_LIB_TIMEOUT
         val sleepTime = DEFAULT_DDM_LIB_SLEEP_TIME
         while (!adb.hasInitialDeviceList() || !adb.hasDevices() && getDevicesCountdown >= 0) {
@@ -197,7 +186,6 @@ class AndroidDeviceProvider(
     override suspend fun terminate() {
         bootWaitContext.close()
         channel.close()
-        AndroidDebugBridge.terminate()
     }
 
     override fun subscribe() = channel
