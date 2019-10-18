@@ -59,6 +59,10 @@ class AndroidDeviceTestRunner(private val device: AndroidDevice) {
             val errorMessage = "adb error while running tests ${testBatch.tests.map { it.toTestName() }}"
             logger.error(e) { errorMessage }
             listener.testRunFailed(errorMessage)
+        } catch (e: Exception) {
+            val errorMessage = "adb error while running tests ${testBatch.tests.map { it.toTestName() }}"
+            logger.error(e) { errorMessage }
+            listener.testRunFailed(errorMessage)
         } finally {
 
         }
