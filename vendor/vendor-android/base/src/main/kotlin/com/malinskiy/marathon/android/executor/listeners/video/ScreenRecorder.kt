@@ -10,19 +10,20 @@ internal class ScreenRecorder(
     private val device: AndroidDevice,
     private val receiver: LineListener,
     private val remoteFilePath: String
-) : Runnable {
+) {
 
-    override fun run() {
-        try {
-            startRecordingTestVideo()
+    fun run(handler: ScreenRecorderHandler) {
+        return try {
+            startRecordingTestVideo(handler)
         } catch (e: Exception) {
             logger.error("Something went wrong while screen recording", e)
         }
     }
 
-    private fun startRecordingTestVideo() {
+    private fun startRecordingTestVideo(handler: ScreenRecorderHandler) {
         val millis = measureTimeMillis {
             device.safeStartScreenRecorder(
+                handler = handler,
                 remoteFilePath = remoteFilePath,
                 listener = receiver,
                 options = options

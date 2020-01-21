@@ -29,6 +29,7 @@ class ScreenRecorderTestRunListener(
 
     private val logger = MarathonLogging.logger("ScreenRecorder")
 
+    private var handler: ScreenRecorderHandler? = null
     private val screenRecorderStopper = ScreenRecorderStopper(device)
 
     private var hasFailed: Boolean = false
@@ -41,8 +42,9 @@ class ScreenRecorderTestRunListener(
         hasFailed = false
 
         val screenRecorder = ScreenRecorder(device, outputListener, device.fileManager.remoteVideoForTest(test))
+        handler = ScreenRecorderHandler()
         recorder = kotlin.concurrent.thread {
-            screenRecorder.run()
+            screenRecorder.run(handler!!)
         }
     }
 
@@ -51,10 +53,12 @@ class ScreenRecorderTestRunListener(
     }
 
     override fun testAssumptionFailure(test: Test, trace: String) {
+        handler?.stop()
         pullVideo(test)
     }
 
     override fun testEnded(test: Test, testMetrics: Map<String, String>) {
+        handler?.stop()
         pullVideo(test)
     }
 

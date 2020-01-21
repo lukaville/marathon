@@ -34,6 +34,7 @@ import com.malinskiy.marathon.android.executor.listeners.TestRunListener
 import com.malinskiy.marathon.android.executor.listeners.TestRunResultsListener
 import com.malinskiy.marathon.android.executor.listeners.line.LineListener
 import com.malinskiy.marathon.android.executor.listeners.screenshot.ScreenCapturerTestRunListener
+import com.malinskiy.marathon.android.executor.listeners.video.ScreenRecorderHandler
 import com.malinskiy.marathon.android.executor.listeners.video.ScreenRecorderOptions
 import com.malinskiy.marathon.android.executor.listeners.video.ScreenRecorderTestRunListener
 import com.malinskiy.marathon.android.serial.SerialStrategy
@@ -142,6 +143,7 @@ class DdmlibAndroidDevice(
     }
 
     override fun safeStartScreenRecorder(
+        handler: ScreenRecorderHandler,
         remoteFilePath: String,
         listener: LineListener,
         options: ScreenRecorderOptions
@@ -153,10 +155,13 @@ class DdmlibAndroidDevice(
             .setTimeLimit(options.timeLimit, options.timeLimitUnits)
             .build()
 
+        val receiver = CollectingOutputReceiver()
+        handler.subscribeOnStop { receiver.cancel() }
+
         ddmsDevice.safeStartScreenRecorder(
             remoteFilePath,
             recorderOptions,
-            CollectingOutputReceiver()
+            receiver
         )
     }
 
