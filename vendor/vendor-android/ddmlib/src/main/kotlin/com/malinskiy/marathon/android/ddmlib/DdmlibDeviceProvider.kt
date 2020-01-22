@@ -158,6 +158,7 @@ class DdmlibDeviceProvider(
 
             private fun notifyDisconnected(device: DdmlibAndroidDevice) {
                 launch {
+                    androidAppInstaller.onDisconnected(device)
                     channel.send(DeviceDisconnected(device))
                 }
             }

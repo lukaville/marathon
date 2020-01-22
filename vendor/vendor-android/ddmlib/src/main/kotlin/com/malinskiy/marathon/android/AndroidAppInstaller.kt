@@ -37,6 +37,10 @@ class AndroidAppInstaller(
         logger.debug { "Prepare installation finished for ${device.serialNumber}" }
     }
 
+    fun onDisconnected(device: AndroidDevice) {
+        installedApps.remove(device.serialNumber)
+    }
+
     @Suppress("TooGenericExceptionThrown")
     private suspend fun ensureInstalled(device: AndroidDevice, appPackage: String, appApk: File) {
         withRetry(attempts = MAX_RETIRES, delayTime = 1000) {
