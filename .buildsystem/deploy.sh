@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 cd `dirname $0`/..
 
-DTASK=":publishDefaultPublicationToMavenLocal"
-TARGETS=":core$DTASK :vendor:vendor-android$DTASK :marathon-gradle-plugin$DTASK :report:execution-timeline$DTASK :report:html-report$DTASK :analytics:usage$DTASK"
+TARGETS=""
+for i in ":core" ":vendor:vendor-android:base" ":vendor:vendor-android:ddmlib" ":marathon-gradle-plugin" ":report:execution-timeline" ":report:html-report" ":analytics:usage"; do
+  TARGETS="$TARGETS $i:publishDefaultPublicationToMavenLocal"
+done
 
 if [ ! -z "$TRAVIS_TAG" ]
 then
