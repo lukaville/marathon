@@ -48,7 +48,8 @@ class QueueActor(
     private val testResultReporter = TestResultReporter(poolId, analytics, configuration, track)
     private var flakyTests: List<Test> = emptyList()
 
-    private var stopRequested: Boolean = false
+    var stopRequested: Boolean = false
+        private set
 
     override suspend fun receive(msg: QueueMessage) {
         when (msg) {
