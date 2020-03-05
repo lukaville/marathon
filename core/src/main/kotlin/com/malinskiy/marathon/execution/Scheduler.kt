@@ -75,9 +75,15 @@ class Scheduler(
     suspend fun stopAndWaitForCompletion() {
         cacheLoader.stop()
 
+        logger.debug { "Requesting stop in pools" }
+
         pools.values.forEach {
-            it.send(FromScheduler.RequestStop)
+            if (!it.isClosedForSend) {
+                it.send(FromScheduler.RequestStop)
+            }
         }
+
+        logger.debug { "Stop requested in all pools" }
 
         for (child in job.children) {
             child.join()
@@ -150,7 +156,7 @@ class Scheduler(
         }
         pools[poolId]?.send(AddDevice(device)) ?: logger.debug {
             "not sending the AddDevice event " +
-                    "to device pool for ${device.serialNumber}"
+                "to device pool for ${device.serialNumber}"
         }
         track.deviceConnected(poolId, device.toDeviceInfo())
     }

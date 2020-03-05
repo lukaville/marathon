@@ -85,6 +85,7 @@ class TestCacheLoader(
         testsToCheck.close()
         cacheCheckCompleted.await()
         _results.close()
+        logger.debug { "Cache loader is terminated" }
     }
 
     private class TestToCheck(val poolId: DevicePoolId, val test: Test, val isStrictRun: Boolean)

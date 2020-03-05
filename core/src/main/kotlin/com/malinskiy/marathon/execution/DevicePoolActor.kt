@@ -15,8 +15,12 @@ import com.malinskiy.marathon.execution.queue.QueueActor
 import com.malinskiy.marathon.execution.queue.QueueMessage
 import com.malinskiy.marathon.log.MarathonLogging
 import com.malinskiy.marathon.test.TestBatch
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.SendChannel
+import kotlinx.coroutines.delay
+import java.util.concurrent.TimeUnit
 import kotlin.coroutines.CoroutineContext
 
 class DevicePoolActor(
@@ -61,6 +65,8 @@ class DevicePoolActor(
     )
 
     private val devices = mutableMapOf<String, SendChannel<DeviceEvent>>()
+
+    private var noDevicesTimeoutDeferred: Deferred<Unit>? = null
 
     private suspend fun notifyDevices() {
         logger.debug { "Notify devices" }
@@ -131,8 +137,16 @@ class DevicePoolActor(
         actor?.safeSend(DeviceEvent.Terminate)
         logger.debug { "devices.size = ${devices.size}" }
         if (noActiveDevices()) {
-            //TODO check if we still have tests and timeout if nothing available
-            terminate()
+            if (!queue.stopRequested) return // we may receive new tests in the future
+
+            noDevicesTimeoutDeferred?.cancel()
+
+            logger.debug { "scheduling terminating of device pool actor as no devices found" }
+            noDevicesTimeoutDeferred = async(poolJob) {
+                delay(TimeUnit.MINUTES.toMillis(NO_DEVICES_IN_POOL_TIMEOUT_MINUTES))
+                logger.debug { "terminating device pool actor as no devices found after timeout" }
+                terminate()
+            }
         }
     }
 
@@ -145,6 +159,9 @@ class DevicePoolActor(
         }
 
         logger.debug { "add device ${device.serialNumber}" }
+
+        noDevicesTimeoutDeferred?.cancel()
+
         val actor = DeviceActor(poolId, this, configuration, device, progressReporter, track, poolJob, coroutineContext)
         devices[device.serialNumber] = actor
         actor.safeSend(DeviceEvent.Initialize)
@@ -152,5 +169,9 @@ class DevicePoolActor(
 
     private suspend fun addTests(shard: TestShard) {
         queue.send(QueueMessage.AddShard(shard))
+    }
+
+    private companion object {
+        private const val NO_DEVICES_IN_POOL_TIMEOUT_MINUTES = 5L
     }
 }

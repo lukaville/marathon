@@ -45,6 +45,7 @@ class TestCacheSaver(
     suspend fun terminate() {
         tasks.close()
         completableDeferred.await()
+        logger.debug { "Cache saver is terminated" }
     }
 
     private class SaveTask(val poolId: DevicePoolId, val result: TestResult)

@@ -19,14 +19,13 @@ import com.malinskiy.marathon.test.TestVendorConfiguration
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.argumentCaptor
 import com.nhaarman.mockitokotlin2.mock
+import com.nhaarman.mockitokotlin2.never
 import com.nhaarman.mockitokotlin2.reset
-import com.nhaarman.mockitokotlin2.times
 import com.nhaarman.mockitokotlin2.verify
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.runBlocking
 import org.amshove.kluent.shouldBe
 import org.amshove.kluent.shouldContainSame
@@ -125,15 +124,13 @@ class QueueActorSpek : Spek(
                     }
                 }
 
-                it("should report test as failed") {
+                it("should not report test as finished") {
                     runBlocking {
                         actor.send(QueueMessage.RequestBatch(TEST_DEVICE_INFO))
                         poolChannel.receive()
                         actor.send(QueueMessage.Completed(TEST_DEVICE_INFO, results))
 
-                        verify(track, times(1)).test(any(), any(), captor.capture(), any())
-                        captor.firstValue.test shouldBe TEST_1
-                        captor.firstValue.status shouldBe TestStatus.FAILURE
+                        verify(track, never()).test(any(), any(), captor.capture(), any())
                     }
                 }
 

@@ -53,6 +53,9 @@ class JUnitWriter(private val fileManager: FileManager, private val fileType: Fi
                     attribute("classname", "${test.pkg}.${test.clazz}")
                     attribute("name", test.method)
                     attribute("time", testResult.durationMillis().toJUnitSeconds())
+                    element("system-out") {
+                        writeCharacters(createStdOutInfo(testResult))
+                    }
                     when (testResult.status) {
                         TestStatus.IGNORED, TestStatus.ASSUMPTION_FAILURE -> {
                             element("skipped") {
@@ -72,5 +75,12 @@ class JUnitWriter(private val fileManager: FileManager, private val fileType: Fi
                 }
             }
         }
+    }
+
+    private fun createStdOutInfo(testResult: TestResult): String {
+        val stringBuilder = StringBuilder()
+        stringBuilder.appendln("Test status: ${testResult.status}")
+        stringBuilder.appendln("Is from cache: ${testResult.isFromCache}")
+        return stringBuilder.toString()
     }
 }
