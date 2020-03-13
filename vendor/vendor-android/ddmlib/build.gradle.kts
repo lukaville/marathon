@@ -20,6 +20,7 @@ dependencies {
     implementation(Libraries.axmlParser)
     implementation(Libraries.jacksonAnnotations)
     implementation(Libraries.scalr)
+    implementation(Libraries.apacheCommonsIO)
     implementation(project(":core"))
     implementation(project(":vendor:vendor-android:base"))
     implementation(Libraries.logbackClassic)

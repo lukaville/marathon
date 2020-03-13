@@ -13,6 +13,7 @@ import com.malinskiy.marathon.device.DeviceProvider.DeviceEvent.DeviceConnected
 import com.malinskiy.marathon.device.DeviceProvider.DeviceEvent.DeviceDisconnected
 import com.malinskiy.marathon.exceptions.NoDevicesException
 import com.malinskiy.marathon.io.AttachmentManager
+import com.malinskiy.marathon.io.FileManager
 import com.malinskiy.marathon.log.MarathonLogging
 import com.malinskiy.marathon.time.Timer
 import com.malinskiy.marathon.vendor.VendorConfiguration
@@ -34,6 +35,7 @@ class DdmlibDeviceProvider(
     private val track: Track,
     private val timer: Timer,
     private val androidAppInstaller: AndroidAppInstaller,
+    private val fileManager: FileManager,
     private val attachmentManager: AttachmentManager
 ) : DeviceProvider, CoroutineScope {
     private val logger = MarathonLogging.logger("AndroidDeviceProvider")
@@ -65,10 +67,12 @@ class DdmlibDeviceProvider(
                         val maybeNewAndroidDevice =
                             DdmlibAndroidDevice(
                                 it,
+                                absolutePath,
                                 track,
                                 timer,
                                 androidAppInstaller,
                                 attachmentManager,
+                                fileManager,
                                 vendorConfiguration.serialStrategy
                             )
                         val healthy = maybeNewAndroidDevice.healthy
@@ -95,7 +99,9 @@ class DdmlibDeviceProvider(
                             timer = timer,
                             serialStrategy = vendorConfiguration.serialStrategy,
                             androidAppInstaller = androidAppInstaller,
-                            attachmentManager = attachmentManager
+                            attachmentManager = attachmentManager,
+                            reportsFileManager = fileManager,
+                            adbPath = absolutePath
                         )
 
                         val healthy = maybeNewAndroidDevice.healthy
