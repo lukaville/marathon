@@ -23,6 +23,12 @@ class FileManager(private val output: File) {
         return createFile(directory, filename)
     }
 
+    fun createFile(fileType: FileType, serialNumber: String, name: String): File {
+        val directory = createDirectories(getDirectory(fileType, serialNumber))
+        val fileName = createFilename(name, fileType)
+        return createFile(directory, fileName)
+    }
+
     fun createTestResultFile(filename: String): File {
         val resultsFolder = get(output.absolutePath, FileType.TEST_RESULT.dir).toFile()
         resultsFolder.mkdirs()
@@ -41,12 +47,17 @@ class FileManager(private val output: File) {
     private fun getDirectory(fileType: FileType, pool: DevicePoolId, serial: String): Path =
         get(output.absolutePath, fileType.dir, pool.name, serial)
 
+    private fun getDirectory(fileType: FileType, serial: String): Path =
+        get(output.absolutePath, fileType.dir, serial)
+
     private fun getDirectory(fileType: FileType, pool: DevicePoolId): Path =
         get(output.absolutePath, fileType.dir, pool.name)
 
     private fun createFile(directory: Path, filename: String): File = File(directory.toFile(), filename)
 
     private fun createFilename(test: Test, fileType: FileType): String = "${test.toTestName()}.${fileType.suffix}"
+
+    private fun createFilename(name: String, fileType: FileType): String = "${name}.${fileType.suffix}"
 
     private fun createFilename(device: DeviceInfo, fileType: FileType): String = "${device.serialNumber}.${fileType.suffix}"
 }

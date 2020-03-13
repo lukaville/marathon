@@ -11,7 +11,6 @@ import com.android.ddmlib.ShellCommandUnresponsiveException
 import com.android.ddmlib.SyncException
 import com.android.ddmlib.TimeoutException
 import com.android.ddmlib.logcat.LogCatMessage
-import com.android.ddmlib.logcat.LogCatReceiverTask
 import com.android.ddmlib.testrunner.ITestRunListener
 import com.android.ddmlib.testrunner.TestIdentifier
 import com.android.sdklib.AndroidVersion
@@ -20,6 +19,7 @@ import com.malinskiy.marathon.android.AndroidAppInstaller
 import com.malinskiy.marathon.android.AndroidComponentInfo
 import com.malinskiy.marathon.android.AndroidDevice
 import com.malinskiy.marathon.android.RemoteFileManager
+import com.malinskiy.marathon.android.ddmlib.shell.CliLogcatReceiver
 import com.malinskiy.marathon.android.ddmlib.shell.receiver.CollectingShellOutputReceiver
 import com.malinskiy.marathon.android.exception.CommandRejectedException
 import com.malinskiy.marathon.android.exception.InvalidSerialConfiguration
@@ -62,15 +62,16 @@ import java.awt.image.BufferedImage
 import java.io.IOException
 import java.util.*
 import java.util.concurrent.TimeUnit
-import kotlin.concurrent.thread
 import kotlin.coroutines.CoroutineContext
 
 class DdmlibAndroidDevice(
     val ddmsDevice: IDevice,
+    private val adbPath: String,
     private val track: Track,
     private val timer: Timer,
     private val androidAppInstaller: AndroidAppInstaller,
     private val attachmentManager: AttachmentManager,
+    private val reportsFileManager: FileManager,
     private val serialStrategy: SerialStrategy
 ) : Device, CoroutineScope, AndroidDevice {
     override val fileManager = RemoteFileManager(this)
@@ -78,12 +79,7 @@ class DdmlibAndroidDevice(
     override val version: AndroidVersion by lazy { ddmsDevice.version }
     private val nullOutputReceiver = NullOutputReceiver()
 
-    private val receiver = LogCatReceiverTask(ddmsDevice)
-
-    private var logcatThread = thread(name = "LogCatLogger-${ddmsDevice.serialNumber}") {
-        receiver.run()
-    }
-
+    private var logcatReceiver: CliLogcatReceiver? = null
     private val logcatListeners = mutableListOf<LineListener>()
     private val listener: (List<LogCatMessage>) -> Unit = {
         it.forEach { msg ->
@@ -340,15 +336,16 @@ class DdmlibAndroidDevice(
                 fileManager.removeRemoteDirectory()
                 fileManager.createRemoteDirectory()
                 clearLogcat(ddmsDevice)
-                receiver.addLogCatListener(listener)
+
+                logcatReceiver = CliLogcatReceiver(adbPath, reportsFileManager, ddmsDevice, listener)
+                logcatReceiver?.start()
             }
             deferred.await()
         }
     }
 
     override fun dispose() {
-        logcatThread.interrupt()
-        receiver.removeLogCatListener(listener)
+        logcatReceiver?.dispose()
         dispatcher.close()
     }
 

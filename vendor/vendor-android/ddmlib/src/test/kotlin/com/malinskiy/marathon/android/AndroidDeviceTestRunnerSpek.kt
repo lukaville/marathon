@@ -38,9 +38,11 @@ class AndroidDeviceTestRunnerSpek : Spek(
                 val appInstaller = mock<AndroidAppInstaller>()
                 val device = DdmlibAndroidDevice(
                     ddmsDevice,
+                    "",
                     Track(),
                     SystemTimer(Clock.systemDefaultZone()),
                     appInstaller,
+                    mock(),
                     mock(),
                     SerialStrategy.AUTOMATIC
                 )
