@@ -23,6 +23,7 @@ import com.malinskiy.marathon.report.junit.JUnitReporter
 import com.malinskiy.marathon.report.junit.JUnitWriter
 import com.malinskiy.marathon.report.raw.RawJsonReporter
 import com.malinskiy.marathon.report.stdout.StdoutReporter
+import com.malinskiy.marathon.report.summary.TestSummaryFormatter
 import com.malinskiy.marathon.report.test.TestJsonReporter
 import com.malinskiy.marathon.report.timeline.TimelineReporter
 import com.malinskiy.marathon.report.timeline.TimelineSummaryProvider
@@ -72,17 +73,18 @@ internal class TrackerFactory(
     }
 
     private fun createExecutionReportGenerator(): ExecutionReportGenerator {
+        val testResultDescriptionFactory = TestSummaryFormatter()
         return ExecutionReportGenerator(
             listOf(
                 DeviceInfoJsonReporter(fileManager, gson),
-                JUnitReporter(JUnitWriter(fileManager, FileType.TEST)),
-                FinalJUnitReporter(JUnitWriter(fileManager, FileType.TEST_FINAL)),
+                JUnitReporter(JUnitWriter(fileManager, FileType.TEST, testResultDescriptionFactory)),
+                FinalJUnitReporter(JUnitWriter(fileManager, FileType.TEST_FINAL, testResultDescriptionFactory)),
                 TimelineReporter(TimelineSummaryProvider(), gson, configuration.outputDir),
                 TraceReporter(configuration.outputDir),
                 RawJsonReporter(fileManager, gson),
                 TestJsonReporter(fileManager, gson),
                 AllureReporter(configuration, File(configuration.outputDir, "allure-results")),
-                HtmlSummaryReporter(gson, configuration.outputDir, configuration),
+                HtmlSummaryReporter(gson, configuration.outputDir, configuration, testResultDescriptionFactory),
                 AttachmentsReporter(attachmentManager),
                 StdoutReporter(timer)
             )

@@ -18,6 +18,8 @@ import com.malinskiy.marathon.report.HtmlShortTest
 import com.malinskiy.marathon.report.HtmlTestLogDetails
 import com.malinskiy.marathon.report.Reporter
 import com.malinskiy.marathon.report.Status
+import com.malinskiy.marathon.report.summary.TestSummary
+import com.malinskiy.marathon.report.summary.TestSummaryFormatter
 import org.apache.commons.text.StringEscapeUtils
 import java.io.File
 import java.io.InputStream
@@ -28,7 +30,8 @@ import kotlin.math.roundToLong
 class HtmlSummaryReporter(
     private val gson: Gson,
     private val rootOutput: File,
-    private val configuration: Configuration
+    private val configuration: Configuration,
+    private val testSummaryFormatter: TestSummaryFormatter
 ) : Reporter {
 
     /**
@@ -77,6 +80,8 @@ class HtmlSummaryReporter(
 
         val poolsDir = File(outputDir, "pools").apply { mkdirs() }
 
+        val testSummaries = executionReport.testSummaries
+
         summary.pools.forEach { pool ->
             val poolJson = gson.toJson(pool.toHtmlPoolSummary())
             val poolHtmlFile = File(poolsDir, "${pool.poolId.name}.html")
@@ -90,7 +95,10 @@ class HtmlSummaryReporter(
             )
 
             pool.tests.map { it to File(File(poolsDir, pool.poolId.name), it.device.serialNumber).apply { mkdirs() } }
-                .map { (test, testDir) -> Triple(test, test.toHtmlFullTest(poolId = pool.poolId.name), testDir) }
+                .map { (test, testDir) ->
+                    val testSummary = testSummaries[test.test]
+                    Triple(test, test.toHtmlFullTest(poolId = pool.poolId.name, summary = testSummary), testDir)
+                }
                 .forEach { (test, htmlTest, testDir) ->
                     val testJson = gson.toJson(htmlTest)
                     val testHtmlFile = File(testDir, "${htmlTest.id}.html")
@@ -99,7 +107,7 @@ class HtmlSummaryReporter(
                         indexHtml
                             .replace("\${relative_path}", testHtmlFile.relativePathToHtmlDir())
                             .replace("\${data_json}", "window.test = $testJson")
-                            .replace("\${log}", generateLogcatHtml(test.stacktrace ?: ""))
+                            .replace("\${log}", generateLogcatHtml(htmlTest.stacktrace.orEmpty()))
                             .replace("\${date}", formattedDate)
                     )
 
@@ -127,7 +135,14 @@ class HtmlSummaryReporter(
         false -> ""
         true -> logcatOutput
             .lines()
-            .map { line -> """<div class="log__${cssClassForLogcatLine(line)}">${StringEscapeUtils.escapeXml11(line)}</div>""" }
+            .map { line ->
+                val htmlLine = line
+                    .let { StringEscapeUtils.escapeXml11(it) }
+                    .ifEmpty { "&nbsp;" }
+                    .replace("\t", "&nbsp;&nbsp;&nbsp;&nbsp;")
+
+                """<div class="log__${cssClassForLogcatLine(line)}">$htmlLine</div>"""
+            }
             .fold(StringBuilder("""<div class="content"><div class="card log">""")) { stringBuilder, line ->
                 stringBuilder.appendln(line)
             }.appendln("""</div></div>""").toString()
@@ -154,28 +169,33 @@ class HtmlSummaryReporter(
         modelName = model
     )
 
-    fun TestResult.toHtmlFullTest(poolId: String) = HtmlFullTest(
-        poolId = poolId,
-        id = "${test.pkg}.${test.clazz}.${test.method}",
-        packageName = test.pkg,
-        className = test.clazz,
-        name = test.method,
-        durationMillis = durationMillis(),
-        status = status.toHtmlStatus(),
-        deviceId = this.device.serialNumber,
-        diagnosticVideo = device.deviceFeatures.contains(DeviceFeature.VIDEO),
-        diagnosticScreenshots = device.deviceFeatures.contains(DeviceFeature.SCREENSHOT),
-        stacktrace = stacktrace,
-        screenshot = when (device.deviceFeatures.contains(DeviceFeature.SCREENSHOT)) {
-            true -> "../../../../screenshot/$poolId/${device.serialNumber}/${test.pkg}.${test.clazz}%23${test.method}.gif"
-            false -> ""
-        },
-        video = when (device.deviceFeatures.contains(DeviceFeature.VIDEO)) {
-            true -> "../../../../video/$poolId/${device.serialNumber}/${test.pkg}.${test.clazz}%23${test.method}.mp4"
-            false -> ""
-        },
-        logFile = "../../../../logs/$poolId/${device.serialNumber}/${test.pkg}.${test.clazz}%23${test.method}.log"
-    )
+    fun TestResult.toHtmlFullTest(poolId: String, summary: TestSummary?): HtmlFullTest {
+        val formattedSummary = testSummaryFormatter.formatTestResultSummary(this, summary)
+        val log = stacktrace.orEmpty() + "\n" + formattedSummary
+
+        return HtmlFullTest(
+            poolId = poolId,
+            id = "${test.pkg}.${test.clazz}.${test.method}",
+            packageName = test.pkg,
+            className = test.clazz,
+            name = test.method,
+            durationMillis = durationMillis(),
+            status = status.toHtmlStatus(),
+            deviceId = this.device.serialNumber,
+            diagnosticVideo = device.deviceFeatures.contains(DeviceFeature.VIDEO),
+            diagnosticScreenshots = device.deviceFeatures.contains(DeviceFeature.SCREENSHOT),
+            stacktrace = log,
+            screenshot = when (device.deviceFeatures.contains(DeviceFeature.SCREENSHOT)) {
+                true -> "../../../../screenshot/$poolId/${device.serialNumber}/${test.pkg}.${test.clazz}%23${test.method}.gif"
+                false -> ""
+            },
+            video = when (device.deviceFeatures.contains(DeviceFeature.VIDEO)) {
+                true -> "../../../../video/$poolId/${device.serialNumber}/${test.pkg}.${test.clazz}%23${test.method}.mp4"
+                false -> ""
+            },
+            logFile = "../../../../logs/$poolId/${device.serialNumber}/${test.pkg}.${test.clazz}%23${test.method}.log"
+        )
+    }
 
     fun TestStatus.toHtmlStatus() = when (this) {
         TestStatus.PASSED -> Status.Passed
