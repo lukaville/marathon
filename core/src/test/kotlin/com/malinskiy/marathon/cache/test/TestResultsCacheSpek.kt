@@ -60,6 +60,7 @@ class TestResultsCacheSpek : Spek(
                         status = TestStatus.PASSED,
                         startTime = 123,
                         endTime = 456,
+                        batchId = "batch_id",
                         stacktrace = "stacktrace"
                     )
 
@@ -72,6 +73,7 @@ class TestResultsCacheSpek : Spek(
                     testResultFromCache.status shouldEqual TestStatus.PASSED
                     testResultFromCache.startTime shouldEqual 123
                     testResultFromCache.endTime shouldEqual 456
+                    testResultFromCache.batchId shouldEqual "batch_id"
                     testResultFromCache.stacktrace shouldEqual "stacktrace"
                 }
             }
@@ -133,7 +135,8 @@ private fun createTestResult(attachments: List<Attachment> = emptyList()) = Test
     status = TestStatus.PASSED,
     startTime = 123,
     endTime = 456,
-    attachments = attachments
+    attachments = attachments,
+    batchId = "test_batch_id"
 )
 
 private fun createTest() = Test(

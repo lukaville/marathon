@@ -24,6 +24,7 @@ class TestCacheKeyFactory(
             .bufferedWriter()
             .use {
                 it.write(versionNameProvider.versionName)
+                it.write(CACHE_FORMAT_VERSION)
                 it.writeConfiguration(configuration)
                 it.write(componentCachingKey)
                 it.write(poolId.name)
@@ -55,4 +56,8 @@ class TestCacheKeyFactory(
             },
             MessageDigest.getInstance("MD5")
         )
+
+    private companion object {
+        private const val CACHE_FORMAT_VERSION = "version:1"
+    }
 }

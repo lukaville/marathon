@@ -1,8 +1,13 @@
 package com.malinskiy.marathon.test
 
 import com.malinskiy.marathon.execution.ComponentInfo
+import java.util.UUID
 
-data class TestBatch(val tests: List<Test>, val componentInfo: ComponentInfo) {
+data class TestBatch(
+    val id: String = UUID.randomUUID().toString(),
+    val tests: List<Test>,
+    val componentInfo: ComponentInfo
+) {
 
     init {
         val componentInfos = tests.map { it.componentInfo }.distinct()

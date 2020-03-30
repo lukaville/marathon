@@ -19,6 +19,7 @@ class TestResultEntryWriter(private val testResult: TestResult) : CacheEntryWrit
         output.writeInt(testResult.status.ordinal)
         output.writeLong(testResult.startTime)
         output.writeLong(testResult.endTime)
+        output.writeString(testResult.batchId)
         output.writeString(testResult.stacktrace)
 
         output.writeInt(testResult.attachments.size)

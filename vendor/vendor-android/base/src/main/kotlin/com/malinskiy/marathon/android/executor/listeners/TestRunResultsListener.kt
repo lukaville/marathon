@@ -103,7 +103,8 @@ class TestRunResultsListener(
                 TestStatus.INCOMPLETE,
                 lastCompletedTestEndTime,
                 timer.currentTimeMillis(),
-                strictRunChecker.isStrictRun(it),
+                batchId = testBatch.id,
+                isStrictRun = strictRunChecker.isStrictRun(it),
                 isFromCache = false,
                 stacktrace = testRunResult.runFailureMessage
             )
@@ -143,6 +144,7 @@ class TestRunResultsListener(
             status = value.status.toMarathonStatus(),
             startTime = value.startTime,
             endTime = value.endTime,
+            batchId = testBatch.id,
             isStrictRun = strictRunChecker.isStrictRun(resultTest),
             stacktrace = value.stackTrace,
             attachments = attachments

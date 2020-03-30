@@ -9,6 +9,7 @@ data class TestResult(
     val status: TestStatus,
     val startTime: Long,
     val endTime: Long,
+    val batchId: String,
     val isStrictRun: Boolean = false,
     val isFromCache: Boolean = false,
     val stacktrace: String? = null,

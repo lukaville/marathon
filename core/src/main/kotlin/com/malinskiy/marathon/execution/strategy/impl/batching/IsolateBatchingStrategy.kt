@@ -9,7 +9,10 @@ import java.util.*
 class IsolateBatchingStrategy : BatchingStrategy {
     override fun process(queue: Queue<Test>, analytics: Analytics): TestBatch {
         val test = queue.poll()
-        return TestBatch(listOf(test), test.componentInfo)
+        return TestBatch(
+            tests = listOf(test),
+            componentInfo = test.componentInfo
+        )
     }
 
     override fun hashCode() = javaClass.canonicalName.hashCode()

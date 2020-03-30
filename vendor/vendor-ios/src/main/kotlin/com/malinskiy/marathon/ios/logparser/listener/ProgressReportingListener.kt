@@ -3,7 +3,6 @@ package com.malinskiy.marathon.ios.logparser.listener
 import com.malinskiy.marathon.device.Device
 import com.malinskiy.marathon.device.DevicePoolId
 import com.malinskiy.marathon.device.toDeviceInfo
-import com.malinskiy.marathon.execution.ConfigurationStrictRunChecker
 import com.malinskiy.marathon.execution.StrictRunChecker
 import com.malinskiy.marathon.execution.TestBatchResults
 import com.malinskiy.marathon.execution.TestResult
@@ -49,6 +48,7 @@ class ProgressReportingListener(
                 status = TestStatus.FAILURE,
                 startTime = lastCompletedTestEndTime,
                 endTime = lastCompletedTestEndTime,
+                batchId = testBatch.id,
                 isStrictRun = strictRunChecker.isStrictRun(it),
                 isFromCache = false,
                 stacktrace = testLogListener.getLastLog()
@@ -65,6 +65,7 @@ class ProgressReportingListener(
                 TestStatus.FAILURE,
                 startTime,
                 endTime,
+                testBatch.id,
                 strictRunChecker.isStrictRun(test),
                 false,
                 testLogListener.getLastLog()
@@ -81,6 +82,7 @@ class ProgressReportingListener(
                 TestStatus.PASSED,
                 startTime,
                 endTime,
+                testBatch.id,
                 strictRunChecker.isStrictRun(test),
                 false,
                 testLogListener.getLastLog()

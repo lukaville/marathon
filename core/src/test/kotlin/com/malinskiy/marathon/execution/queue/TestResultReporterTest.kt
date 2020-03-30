@@ -111,9 +111,9 @@ object TestResultReporterSpec : Spek(
                 it("should report success") {
                     val filter = filterDefault()
 
-                    val r1 = TestResult(test, deviceInfo, TestStatus.PASSED, 0, 1)
-                    val r2 = TestResult(test, deviceInfo, TestStatus.FAILURE, 2, 3)
-                    val r3 = TestResult(test, deviceInfo, TestStatus.FAILURE, 4, 5)
+                    val r1 = TestResult(test, deviceInfo, TestStatus.PASSED, 0, 1, "test_batch_id")
+                    val r2 = TestResult(test, deviceInfo, TestStatus.FAILURE, 2, 3, "test_batch_id")
+                    val r3 = TestResult(test, deviceInfo, TestStatus.FAILURE, 4, 5, "test_batch_id")
 
                     filter.testFinished(deviceInfo, r1)
                     filter.testFailed(deviceInfo, r2)
@@ -132,9 +132,9 @@ object TestResultReporterSpec : Spek(
                 it("should report success") {
                     val filter = filterDefault()
 
-                    val r1 = TestResult(test, deviceInfo, TestStatus.FAILURE, 0, 1)
-                    val r2 = TestResult(test, deviceInfo, TestStatus.FAILURE, 2, 3)
-                    val r3 = TestResult(test, deviceInfo, TestStatus.PASSED, 4, 5)
+                    val r1 = TestResult(test, deviceInfo, TestStatus.FAILURE, 0, 1, "test_batch_id")
+                    val r2 = TestResult(test, deviceInfo, TestStatus.FAILURE, 2, 3, "test_batch_id")
+                    val r3 = TestResult(test, deviceInfo, TestStatus.PASSED, 4, 5, "test_batch_id")
 
                     filter.testFailed(deviceInfo, r1)
                     filter.testFailed(deviceInfo, r2)
@@ -155,9 +155,9 @@ object TestResultReporterSpec : Spek(
                 it("should report failure") {
                     val reporter = strictReporter()
 
-                    val r1 = TestResult(test, deviceInfo, TestStatus.PASSED, 0, 1)
-                    val r2 = TestResult(test, deviceInfo, TestStatus.FAILURE, 2, 3)
-                    val r3 = TestResult(test, deviceInfo, TestStatus.FAILURE, 4, 5)
+                    val r1 = TestResult(test, deviceInfo, TestStatus.PASSED, 0, 1, "test_batch_id")
+                    val r2 = TestResult(test, deviceInfo, TestStatus.FAILURE, 2, 3, "test_batch_id")
+                    val r3 = TestResult(test, deviceInfo, TestStatus.FAILURE, 4, 5, "test_batch_id")
 
                     reporter.testFinished(deviceInfo, r1)
                     reporter.testFailed(deviceInfo, r2)
@@ -176,9 +176,9 @@ object TestResultReporterSpec : Spek(
                 it("should report failure") {
                     val filter = strictReporter()
 
-                    val r1 = TestResult(test, deviceInfo, TestStatus.FAILURE, 0, 1)
-                    val r2 = TestResult(test, deviceInfo, TestStatus.PASSED, 2, 3)
-                    val r3 = TestResult(test, deviceInfo, TestStatus.PASSED, 4, 5)
+                    val r1 = TestResult(test, deviceInfo, TestStatus.FAILURE, 0, 1, "test_batch_id")
+                    val r2 = TestResult(test, deviceInfo, TestStatus.PASSED, 2, 3, "test_batch_id")
+                    val r3 = TestResult(test, deviceInfo, TestStatus.PASSED, 4, 5, "test_batch_id")
 
                     filter.testFailed(deviceInfo, r1)
                     filter.testFinished(deviceInfo, r2)
@@ -199,9 +199,9 @@ object TestResultReporterSpec : Spek(
                 it("should report failure") {
                     val reporter = strictFilterReporter(filter = SimpleClassnameFilter(Regex.fromLiteral(test.clazz)))
 
-                    val r1 = TestResult(test, deviceInfo, TestStatus.PASSED, 0, 1)
-                    val r2 = TestResult(test, deviceInfo, TestStatus.FAILURE, 2, 3)
-                    val r3 = TestResult(test, deviceInfo, TestStatus.FAILURE, 4, 5)
+                    val r1 = TestResult(test, deviceInfo, TestStatus.PASSED, 0, 1, "test_batch_id")
+                    val r2 = TestResult(test, deviceInfo, TestStatus.FAILURE, 2, 3, "test_batch_id")
+                    val r3 = TestResult(test, deviceInfo, TestStatus.FAILURE, 4, 5, "test_batch_id")
 
                     reporter.testFinished(deviceInfo, r1)
                     reporter.testFailed(deviceInfo, r2)
@@ -220,9 +220,9 @@ object TestResultReporterSpec : Spek(
                 it("should report failure") {
                     val reporter = strictFilterReporter(filter = SimpleClassnameFilter(Regex.fromLiteral(test.clazz)))
 
-                    val r1 = TestResult(test, deviceInfo, TestStatus.FAILURE, 0, 1)
-                    val r2 = TestResult(test, deviceInfo, TestStatus.PASSED, 2, 3)
-                    val r3 = TestResult(test, deviceInfo, TestStatus.PASSED, 4, 5)
+                    val r1 = TestResult(test, deviceInfo, TestStatus.FAILURE, 0, 1, "test_batch_id")
+                    val r2 = TestResult(test, deviceInfo, TestStatus.PASSED, 2, 3, "test_batch_id")
+                    val r3 = TestResult(test, deviceInfo, TestStatus.PASSED, 4, 5, "test_batch_id")
 
                     reporter.testFailed(deviceInfo, r1)
                     reporter.testFinished(deviceInfo, r2)
@@ -243,9 +243,9 @@ object TestResultReporterSpec : Spek(
                 it("should report success") {
                     val reporter = strictFilterReporter(filter = SimpleClassnameFilter(Regex.fromLiteral("$^")))
 
-                    val r1 = TestResult(test, deviceInfo, TestStatus.PASSED, 0, 1)
-                    val r2 = TestResult(test, deviceInfo, TestStatus.FAILURE, 2, 3)
-                    val r3 = TestResult(test, deviceInfo, TestStatus.FAILURE, 4, 5)
+                    val r1 = TestResult(test, deviceInfo, TestStatus.PASSED, 0, 1, "test_batch_id")
+                    val r2 = TestResult(test, deviceInfo, TestStatus.FAILURE, 2, 3, "test_batch_id")
+                    val r3 = TestResult(test, deviceInfo, TestStatus.FAILURE, 4, 5, "test_batch_id")
 
                     reporter.testFinished(deviceInfo, r1)
                     reporter.testFailed(deviceInfo, r2)
@@ -264,9 +264,9 @@ object TestResultReporterSpec : Spek(
                 it("should report success") {
                     val reporter = strictFilterReporter(filter = SimpleClassnameFilter(Regex.fromLiteral("$^")))
 
-                    val r1 = TestResult(test, deviceInfo, TestStatus.FAILURE, 0, 1)
-                    val r2 = TestResult(test, deviceInfo, TestStatus.PASSED, 2, 3)
-                    val r3 = TestResult(test, deviceInfo, TestStatus.PASSED, 4, 5)
+                    val r1 = TestResult(test, deviceInfo, TestStatus.FAILURE, 0, 1, "test_batch_id")
+                    val r2 = TestResult(test, deviceInfo, TestStatus.PASSED, 2, 3, "test_batch_id")
+                    val r3 = TestResult(test, deviceInfo, TestStatus.PASSED, 4, 5, "test_batch_id")
 
                     reporter.testFailed(deviceInfo, r1)
                     reporter.testFinished(deviceInfo, r2)

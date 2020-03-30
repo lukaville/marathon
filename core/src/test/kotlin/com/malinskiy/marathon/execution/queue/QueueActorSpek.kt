@@ -210,7 +210,8 @@ private fun createTestResult(test: Test, status: TestStatus) = TestResult(
     startTime = 0,
     endTime = 0,
     stacktrace = null,
-    attachments = emptyList()
+    attachments = emptyList(),
+    batchId = "test_batch_id"
 )
 
 private fun createQueueActor(
