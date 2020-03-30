@@ -5,6 +5,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.google.gson.Gson
 import com.malinskiy.marathon.analytics.internal.pub.Track
 import com.malinskiy.marathon.device.DeviceProvider
+import com.malinskiy.marathon.execution.StrictRunChecker
 import com.malinskiy.marathon.ios.HealthChangeListener
 import com.malinskiy.marathon.ios.IOSConfiguration
 import com.malinskiy.marathon.ios.IOSDevice
@@ -37,6 +38,7 @@ class LocalListSimulatorProvider(
     yamlObjectMapper: ObjectMapper,
     private val gson: Gson,
     private val track: Track,
+    private val strictRunChecker: StrictRunChecker,
     private val timer: Timer
 ) : SimulatorProvider, HealthChangeListener, CoroutineScope {
 
@@ -139,6 +141,7 @@ class LocalListSimulatorProvider(
             gson = gson,
             healthChangeListener = this,
             track = track,
+            strictRunChecker = strictRunChecker,
             timer = timer
         )
     } catch (e: DeviceFailureException) {

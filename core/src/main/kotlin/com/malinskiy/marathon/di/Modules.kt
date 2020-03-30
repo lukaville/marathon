@@ -17,6 +17,8 @@ import com.malinskiy.marathon.cache.test.TestResultsCache
 import com.malinskiy.marathon.cache.test.key.TestCacheKeyFactory
 import com.malinskiy.marathon.cache.test.key.VersionNameProvider
 import com.malinskiy.marathon.execution.Configuration
+import com.malinskiy.marathon.execution.ConfigurationStrictRunChecker
+import com.malinskiy.marathon.execution.StrictRunChecker
 import com.malinskiy.marathon.execution.progress.ProgressReporter
 import com.malinskiy.marathon.io.AttachmentManager
 import com.malinskiy.marathon.io.CachedFileHasher
@@ -56,7 +58,8 @@ val coreModule = module {
     single<Clock> { Clock.systemDefaultZone() }
     single<Timer> { SystemTimer(get()) }
     single<ProgressReporter> { ProgressReporter() }
-    single<Marathon> { Marathon(get(), get(), get(), get(), get(), get(), get(), get(), get()) }
+    single<StrictRunChecker> { ConfigurationStrictRunChecker(get()) }
+    single<Marathon> { Marathon(get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
 }
 
 fun KoinApplication.marathonConfiguration(configuration: Configuration): KoinApplication {

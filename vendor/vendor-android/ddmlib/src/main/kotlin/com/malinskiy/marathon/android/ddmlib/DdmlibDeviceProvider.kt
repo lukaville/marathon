@@ -12,6 +12,7 @@ import com.malinskiy.marathon.device.DeviceProvider
 import com.malinskiy.marathon.device.DeviceProvider.DeviceEvent.DeviceConnected
 import com.malinskiy.marathon.device.DeviceProvider.DeviceEvent.DeviceDisconnected
 import com.malinskiy.marathon.exceptions.NoDevicesException
+import com.malinskiy.marathon.execution.StrictRunChecker
 import com.malinskiy.marathon.io.AttachmentManager
 import com.malinskiy.marathon.io.FileManager
 import com.malinskiy.marathon.log.MarathonLogging
@@ -36,6 +37,7 @@ class DdmlibDeviceProvider(
     private val timer: Timer,
     private val androidAppInstaller: AndroidAppInstaller,
     private val fileManager: FileManager,
+    private val strictRunChecker: StrictRunChecker,
     private val attachmentManager: AttachmentManager
 ) : DeviceProvider, CoroutineScope {
     private val logger = MarathonLogging.logger("AndroidDeviceProvider")
@@ -73,7 +75,8 @@ class DdmlibDeviceProvider(
                                 androidAppInstaller,
                                 attachmentManager,
                                 fileManager,
-                                vendorConfiguration.serialStrategy
+                                vendorConfiguration.serialStrategy,
+                                strictRunChecker
                             )
                         val healthy = maybeNewAndroidDevice.healthy
 
@@ -101,7 +104,8 @@ class DdmlibDeviceProvider(
                             androidAppInstaller = androidAppInstaller,
                             attachmentManager = attachmentManager,
                             reportsFileManager = fileManager,
-                            adbPath = absolutePath
+                            adbPath = absolutePath,
+                            strictRunChecker = strictRunChecker
                         )
 
                         val healthy = maybeNewAndroidDevice.healthy

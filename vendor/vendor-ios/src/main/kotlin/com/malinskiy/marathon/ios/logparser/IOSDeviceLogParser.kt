@@ -2,6 +2,7 @@ package com.malinskiy.marathon.ios.logparser
 
 import com.malinskiy.marathon.device.Device
 import com.malinskiy.marathon.device.DevicePoolId
+import com.malinskiy.marathon.execution.StrictRunChecker
 import com.malinskiy.marathon.execution.TestBatchResults
 import com.malinskiy.marathon.execution.progress.ProgressReporter
 import com.malinskiy.marathon.ios.logparser.formatter.PackageNameFormatter
@@ -25,6 +26,7 @@ class IOSDeviceLogParser(
     deferredResults: CompletableDeferred<TestBatchResults>,
     progressReporter: ProgressReporter,
     hideRunnerOutput: Boolean,
+    strictRunChecker: StrictRunChecker,
     val timer: Timer
 ) : StreamingLogParser {
 
@@ -57,7 +59,8 @@ class IOSDeviceLogParser(
                             deferredResults = deferredResults,
                             progressReporter = progressReporter,
                             testLogListener = testLogListener,
-                            timer = timer
+                            timer = timer,
+                            strictRunChecker = strictRunChecker
                         ),
                         testLogListener
                     )

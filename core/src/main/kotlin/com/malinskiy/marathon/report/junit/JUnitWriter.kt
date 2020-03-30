@@ -80,6 +80,7 @@ class JUnitWriter(private val fileManager: FileManager, private val fileType: Fi
     private fun createStdOutInfo(testResult: TestResult): String {
         val stringBuilder = StringBuilder()
         stringBuilder.appendln("Test status: ${testResult.status}")
+        stringBuilder.appendln("Is strict run: ${testResult.isStrictRun}")
         stringBuilder.appendln("Is from cache: ${testResult.isFromCache}")
         return stringBuilder.toString()
     }

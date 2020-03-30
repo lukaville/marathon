@@ -6,6 +6,7 @@ import com.malinskiy.marathon.device.DevicePoolId
 import com.malinskiy.marathon.device.DeviceStub
 import com.malinskiy.marathon.device.toDeviceInfo
 import com.malinskiy.marathon.execution.Configuration
+import com.malinskiy.marathon.execution.ConfigurationStrictRunChecker
 import com.malinskiy.marathon.execution.DevicePoolMessage.FromQueue
 import com.malinskiy.marathon.execution.DevicePoolMessage.FromQueue.ExecuteBatch
 import com.malinskiy.marathon.execution.TestBatchResults
@@ -226,6 +227,7 @@ private fun createQueueActor(
     DevicePoolId("test"),
     mock(),
     track,
+    ConfigurationStrictRunChecker(configuration),
     job,
     Dispatchers.Unconfined
 )

@@ -29,6 +29,7 @@ class DevicePoolActor(
     analytics: Analytics,
     private val progressReporter: ProgressReporter,
     private val track: Track,
+    private val strictRunChecker: StrictRunChecker,
     parent: Job,
     context: CoroutineContext
 ) :
@@ -60,6 +61,7 @@ class DevicePoolActor(
         poolId,
         progressReporter,
         track,
+        strictRunChecker,
         poolJob,
         context
     )
