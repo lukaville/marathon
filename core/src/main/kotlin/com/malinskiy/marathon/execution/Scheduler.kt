@@ -41,6 +41,7 @@ class Scheduler(
     private val analytics: Analytics,
     private val configuration: Configuration,
     private val progressReporter: ProgressReporter,
+    private val strictRunChecker: StrictRunChecker,
     private val track: Track,
     context: CoroutineContext
 ) {
@@ -152,7 +153,7 @@ class Scheduler(
         logger.debug { "device ${device.serialNumber} associated with poolId ${poolId.name}" }
         pools.computeIfAbsent(poolId) { id ->
             logger.debug { "pool actor ${id.name} is being created" }
-            DevicePoolActor(id, configuration, analytics, progressReporter, track, parent, context)
+            DevicePoolActor(id, configuration, analytics, progressReporter, track, strictRunChecker, parent, context)
         }
         pools[poolId]?.send(AddDevice(device)) ?: logger.debug {
             "not sending the AddDevice event " +

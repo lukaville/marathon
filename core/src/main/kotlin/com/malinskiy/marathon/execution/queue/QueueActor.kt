@@ -7,10 +7,10 @@ import com.malinskiy.marathon.device.DeviceInfo
 import com.malinskiy.marathon.device.DevicePoolId
 import com.malinskiy.marathon.execution.Configuration
 import com.malinskiy.marathon.execution.DevicePoolMessage.FromQueue
+import com.malinskiy.marathon.execution.StrictRunChecker
 import com.malinskiy.marathon.execution.TestBatchResults
 import com.malinskiy.marathon.execution.TestResult
 import com.malinskiy.marathon.execution.TestShard
-import com.malinskiy.marathon.execution.matches
 import com.malinskiy.marathon.execution.progress.ProgressReporter
 import com.malinskiy.marathon.log.MarathonLogging
 import com.malinskiy.marathon.test.Test
@@ -29,6 +29,7 @@ class QueueActor(
     private val poolId: DevicePoolId,
     private val progressReporter: ProgressReporter,
     private val track: Track,
+    private val strictRunChecker: StrictRunChecker,
     poolJob: Job,
     coroutineContext: CoroutineContext
 ) :
@@ -174,7 +175,7 @@ class QueueActor(
             .process(poolId, failed, flakyTests)
             .filter {
                 // strict run tests should not be re-run
-                !configuration.strictRunFilterConfiguration.filter.matches(it.test)
+                !strictRunChecker.isStrictRun(it.test)
             }
 
         progressReporter.addTests(poolId, retryList.size)
@@ -213,7 +214,7 @@ class QueueActor(
         } else {
             logger.debug {
                 "queue is empty but there are active batches present for " +
-                        activeBatches.keys.joinToString { it }
+                    activeBatches.keys.joinToString { it }
             }
         }
     }

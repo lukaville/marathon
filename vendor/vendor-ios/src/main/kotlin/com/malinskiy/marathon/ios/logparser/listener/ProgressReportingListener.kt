@@ -3,6 +3,8 @@ package com.malinskiy.marathon.ios.logparser.listener
 import com.malinskiy.marathon.device.Device
 import com.malinskiy.marathon.device.DevicePoolId
 import com.malinskiy.marathon.device.toDeviceInfo
+import com.malinskiy.marathon.execution.ConfigurationStrictRunChecker
+import com.malinskiy.marathon.execution.StrictRunChecker
 import com.malinskiy.marathon.execution.TestBatchResults
 import com.malinskiy.marathon.execution.TestResult
 import com.malinskiy.marathon.execution.TestStatus
@@ -20,6 +22,7 @@ class ProgressReportingListener(
     private val deferredResults: CompletableDeferred<TestBatchResults>,
     private val progressReporter: ProgressReporter,
     private val testLogListener: TestLogListener,
+    private val strictRunChecker: StrictRunChecker,
     private val timer: Timer
 ) : TestRunListener {
 
@@ -46,6 +49,7 @@ class ProgressReportingListener(
                 status = TestStatus.FAILURE,
                 startTime = lastCompletedTestEndTime,
                 endTime = lastCompletedTestEndTime,
+                isStrictRun = strictRunChecker.isStrictRun(it),
                 isFromCache = false,
                 stacktrace = testLogListener.getLastLog()
             )
@@ -54,12 +58,34 @@ class ProgressReportingListener(
 
     override fun testFailed(test: Test, startTime: Long, endTime: Long) {
         progressReporter.testFailed(poolId, device.toDeviceInfo(), test)
-        failure.add(TestResult(test, device.toDeviceInfo(), TestStatus.FAILURE, startTime, endTime, false, testLogListener.getLastLog()))
+        failure.add(
+            TestResult(
+                test,
+                device.toDeviceInfo(),
+                TestStatus.FAILURE,
+                startTime,
+                endTime,
+                strictRunChecker.isStrictRun(test),
+                false,
+                testLogListener.getLastLog()
+            )
+        )
     }
 
     override fun testPassed(test: Test, startTime: Long, endTime: Long) {
         progressReporter.testPassed(poolId, device.toDeviceInfo(), test)
-        success.add(TestResult(test, device.toDeviceInfo(), TestStatus.PASSED, startTime, endTime, false, testLogListener.getLastLog()))
+        success.add(
+            TestResult(
+                test,
+                device.toDeviceInfo(),
+                TestStatus.PASSED,
+                startTime,
+                endTime,
+                strictRunChecker.isStrictRun(test),
+                false,
+                testLogListener.getLastLog()
+            )
+        )
     }
 
     override fun testStarted(test: Test) {

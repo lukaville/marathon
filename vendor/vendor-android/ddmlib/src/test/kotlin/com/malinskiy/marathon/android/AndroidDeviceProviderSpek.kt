@@ -17,7 +17,7 @@ class AndroidDeviceProviderSpek : Spek(
         given("A provider") {
             on("terminate") {
                 it("should close the channel") {
-                    val provider = DdmlibDeviceProvider(Track(), SystemTimer(Clock.systemDefaultZone()), mock(), mock(), mock())
+                    val provider = DdmlibDeviceProvider(Track(), SystemTimer(Clock.systemDefaultZone()), mock(), mock(), mock(), mock())
 
                     runBlocking {
                         provider.terminate()

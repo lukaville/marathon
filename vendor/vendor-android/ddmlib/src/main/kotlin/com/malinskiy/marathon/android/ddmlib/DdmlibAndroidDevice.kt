@@ -45,6 +45,7 @@ import com.malinskiy.marathon.device.NetworkState
 import com.malinskiy.marathon.device.OperatingSystem
 import com.malinskiy.marathon.exceptions.DeviceLostException
 import com.malinskiy.marathon.execution.Configuration
+import com.malinskiy.marathon.execution.StrictRunChecker
 import com.malinskiy.marathon.execution.TestBatchResults
 import com.malinskiy.marathon.execution.progress.ProgressReporter
 import com.malinskiy.marathon.io.AttachmentManager
@@ -72,7 +73,8 @@ class DdmlibAndroidDevice(
     private val androidAppInstaller: AndroidAppInstaller,
     private val attachmentManager: AttachmentManager,
     private val reportsFileManager: FileManager,
-    private val serialStrategy: SerialStrategy
+    private val serialStrategy: SerialStrategy,
+    private val strictRunChecker: StrictRunChecker
 ) : Device, CoroutineScope, AndroidDevice {
     override val fileManager = RemoteFileManager(this)
 
@@ -323,7 +325,7 @@ class DdmlibAndroidDevice(
             listOf(
                 recorderListener,
                 logCatListener,
-                TestRunResultsListener(testBatch, this, deferred, timer, attachmentProviders),
+                TestRunResultsListener(testBatch, this, deferred, timer, strictRunChecker, attachmentProviders),
                 DebugTestRunListener(this),
                 ProgressTestRunListener(this, devicePoolId, progressReporter)
             )

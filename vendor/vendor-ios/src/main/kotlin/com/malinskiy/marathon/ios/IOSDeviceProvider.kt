@@ -8,6 +8,7 @@ import com.google.gson.GsonBuilder
 import com.malinskiy.marathon.actor.unboundedChannel
 import com.malinskiy.marathon.analytics.internal.pub.Track
 import com.malinskiy.marathon.device.DeviceProvider
+import com.malinskiy.marathon.execution.StrictRunChecker
 import com.malinskiy.marathon.ios.device.LocalListSimulatorProvider
 import com.malinskiy.marathon.ios.device.SimulatorProvider
 import com.malinskiy.marathon.ios.simctl.model.SimctlDeviceList
@@ -23,6 +24,7 @@ import kotlin.coroutines.CoroutineContext
 
 class IOSDeviceProvider(
     private val track: Track,
+    private val strictRunChecker: StrictRunChecker,
     private val timer: Timer
 ) : DeviceProvider, CoroutineScope {
 
@@ -48,7 +50,8 @@ class IOSDeviceProvider(
         val mapper = ObjectMapper(YAMLFactory().disable(YAMLGenerator.Feature.USE_NATIVE_TYPE_ID))
             .registerModule(KotlinModule())
 
-        simulatorProvider = LocalListSimulatorProvider(coroutineContext, channel, vendorConfiguration, mapper, gson, track, timer)
+        simulatorProvider =
+            LocalListSimulatorProvider(coroutineContext, channel, vendorConfiguration, mapper, gson, track, strictRunChecker, timer)
         simulatorProvider?.start()
     }
 

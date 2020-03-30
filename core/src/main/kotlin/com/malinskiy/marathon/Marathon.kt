@@ -13,6 +13,7 @@ import com.malinskiy.marathon.execution.ComponentInfo
 import com.malinskiy.marathon.execution.ComponentInfoExtractor
 import com.malinskiy.marathon.execution.Configuration
 import com.malinskiy.marathon.execution.Scheduler
+import com.malinskiy.marathon.execution.StrictRunChecker
 import com.malinskiy.marathon.execution.StrictRunProcessor
 import com.malinskiy.marathon.execution.TestParser
 import com.malinskiy.marathon.execution.TestShard
@@ -41,6 +42,7 @@ class Marathon(
     private val cachedTestsReporter: CacheTestReporter,
     private val progressReporter: ProgressReporter,
     private val attachmentManager: AttachmentManager,
+    private val strictRunChecker: StrictRunChecker,
     private val track: Track
 ) : MarathonRunner {
 
@@ -131,6 +133,7 @@ class Marathon(
             analytics,
             configuration,
             progressReporter,
+            strictRunChecker,
             track,
             currentCoroutineContext
         )

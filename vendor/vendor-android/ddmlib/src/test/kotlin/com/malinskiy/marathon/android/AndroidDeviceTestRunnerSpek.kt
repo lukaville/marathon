@@ -44,7 +44,8 @@ class AndroidDeviceTestRunnerSpek : Spek(
                     appInstaller,
                     mock(),
                     mock(),
-                    SerialStrategy.AUTOMATIC
+                    SerialStrategy.AUTOMATIC,
+                    mock()
                 )
                 val androidDeviceTestRunner = AndroidDeviceTestRunner(device)
                 val apkFile = File(javaClass.classLoader.getResource("android_test_1.apk").file)

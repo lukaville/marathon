@@ -9,6 +9,7 @@ data class TestResult(
     val status: TestStatus,
     val startTime: Long,
     val endTime: Long,
+    val isStrictRun: Boolean = false,
     val isFromCache: Boolean = false,
     val stacktrace: String? = null,
     val attachments: List<Attachment> = emptyList()
@@ -31,9 +32,10 @@ data class TestResult(
 
     override fun toString(): String {
         return "TestResult(test=${test}, " +
-                "device=${device}, status=${status}, " +
-                "startTime=${startTime}, endTime=${endTime}, " +
-                "isFromCache=${isFromCache}, " +
-                "stacktrace=${stacktrace?.take(24)})"
+            "device=${device}, status=${status}, " +
+            "startTime=${startTime}, endTime=${endTime}, " +
+            "isStrictRun=${isStrictRun}," +
+            "isFromCache=${isFromCache}, " +
+            "stacktrace=${stacktrace?.take(24)})"
     }
 }

@@ -10,6 +10,7 @@ import com.malinskiy.marathon.device.NetworkState
 import com.malinskiy.marathon.device.OperatingSystem
 import com.malinskiy.marathon.exceptions.DeviceLostException
 import com.malinskiy.marathon.execution.Configuration
+import com.malinskiy.marathon.execution.StrictRunChecker
 import com.malinskiy.marathon.execution.TestBatchResults
 import com.malinskiy.marathon.execution.progress.ProgressReporter
 import com.malinskiy.marathon.io.FileManager
@@ -50,6 +51,7 @@ class IOSDevice(
     val gson: Gson,
     private val track: Track,
     private val healthChangeListener: HealthChangeListener,
+    private val strictRunChecker: StrictRunChecker,
     private val timer: Timer
 ) : Device, CoroutineScope {
 
@@ -172,6 +174,7 @@ class IOSDevice(
             deferred,
             progressReporter,
             iosConfiguration.hideRunnerOutput,
+            strictRunChecker,
             timer
         )
 
@@ -315,7 +318,7 @@ class IOSDevice(
         val result =
             hostCommandExecutor.execOrNull(
                 "/usr/libexec/PlistBuddy -c 'Add :DevicePreferences:$udid:ConnectHardwareKeyboard bool false' /Users/master/Library/Preferences/com.apple.iphonesimulator.plist" +
-                        "|| /usr/libexec/PlistBuddy -c 'Set :DevicePreferences:$udid:ConnectHardwareKeyboard false' /Users/master/Library/Preferences/com.apple.iphonesimulator.plist"
+                    "|| /usr/libexec/PlistBuddy -c 'Set :DevicePreferences:$udid:ConnectHardwareKeyboard false' /Users/master/Library/Preferences/com.apple.iphonesimulator.plist"
             )
         if (result?.exitStatus == 0) {
             logger.trace("Disabled hardware keyboard")

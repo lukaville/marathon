@@ -7,6 +7,7 @@ import com.malinskiy.marathon.android.model.TestRunResultsAccumulator
 import com.malinskiy.marathon.device.Device
 import com.malinskiy.marathon.device.toDeviceInfo
 import com.malinskiy.marathon.execution.Attachment
+import com.malinskiy.marathon.execution.StrictRunChecker
 import com.malinskiy.marathon.execution.TestBatchResults
 import com.malinskiy.marathon.execution.TestResult
 import com.malinskiy.marathon.execution.TestStatus
@@ -24,6 +25,7 @@ class TestRunResultsListener(
     private val device: Device,
     private val deferred: CompletableDeferred<TestBatchResults>,
     private val timer: Timer,
+    private val strictRunChecker: StrictRunChecker,
     attachmentProviders: List<AttachmentProvider>
 ) : AbstractTestRunResultListener(), AttachmentListener {
 
@@ -101,8 +103,9 @@ class TestRunResultsListener(
                 TestStatus.INCOMPLETE,
                 lastCompletedTestEndTime,
                 timer.currentTimeMillis(),
-                false,
-                testRunResult.runFailureMessage
+                strictRunChecker.isStrictRun(it),
+                isFromCache = false,
+                stacktrace = testRunResult.runFailureMessage
             )
         }
     }
@@ -131,12 +134,16 @@ class TestRunResultsListener(
         val testInstanceFromBatch = testBatch.tests.find { "${it.pkg}.${it.clazz}" == key.clazz && it.method == key.method }
         val test = key
         val attachments = attachments[test] ?: emptyList<Attachment>()
+
+        val resultTest = testInstanceFromBatch ?: test
+
         return TestResult(
-            test = testInstanceFromBatch ?: test,
+            test = resultTest,
             device = device.toDeviceInfo(),
             status = value.status.toMarathonStatus(),
             startTime = value.startTime,
             endTime = value.endTime,
+            isStrictRun = strictRunChecker.isStrictRun(resultTest),
             stacktrace = value.stackTrace,
             attachments = attachments
         )
