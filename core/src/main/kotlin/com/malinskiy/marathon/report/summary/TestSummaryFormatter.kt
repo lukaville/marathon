@@ -19,11 +19,11 @@ class TestSummaryFormatter {
                 val isCurrent = testResult == currentTestResult
                 val bulletSymbol = if (isCurrent) ">" else "*"
 
-                stringBuilder.append("\t$bulletSymbol ${currentTestResult.status}")
+                stringBuilder.append("\u00a0\u00a0$bulletSymbol ${currentTestResult.status}")
 
                 val additionalInfo = listOfNotNull(
                     testResult.device.serialNumber,
-                    "batch: " + testResult.batchId,
+                    "batch: " + testResult.batchId.createShortBatchId(),
                     testResult.createShortFailureDescription()
                 )
                 stringBuilder.append(" (${additionalInfo.joinToString()})")
@@ -40,13 +40,13 @@ class TestSummaryFormatter {
                 val batchBulletSymbol = if (isCurrentBatch) ">" else "*"
                 val deviceSerial = batch.testResults.first().device.serialNumber
 
-                stringBuilder.appendln("\t$batchBulletSymbol ${batch.batchId} (${batch.testResults.size} tests, $deviceSerial):")
+                stringBuilder.appendln("\u00a0\u00a0$batchBulletSymbol ${batch.batchId.createShortBatchId()} (${batch.testResults.size} tests, $deviceSerial):")
 
                 batch.testResults.forEach { testResult ->
-                    val isCurrentTest = testResult == currentTestResult
+                    val isCurrentTest = testResult.test == currentTestResult.test
                     val testBulletSymbol = if (isCurrentTest) ">" else "*"
 
-                    stringBuilder.append("\t\t$testBulletSymbol ${testResult.test.toSimpleSafeTestName()}")
+                    stringBuilder.append("\u00a0\u00a0\u00a0\u00a0$testBulletSymbol ${testResult.test.toSimpleSafeTestName()}")
 
                     val additionalInfo = listOfNotNull(
                         testResult.status.toString(),
@@ -68,10 +68,15 @@ class TestSummaryFormatter {
             ?.lineSequence()
             ?.take(SHORT_FAILURE_MAX_LINES)
             ?.joinToString(separator = " ")
-            ?.take(SHORT_FAILURE_DESCRIPTION_LIMIT) + "..."
+            ?.take(SHORT_FAILURE_DESCRIPTION_LIMIT)
+            ?.let { "$it..." }
+
+    private fun String.createShortBatchId(): String =
+        take(SHORT_BATCH_ID_SIZE)
 
     private companion object {
         private const val SHORT_FAILURE_DESCRIPTION_LIMIT = 80
-        private const val SHORT_FAILURE_MAX_LINES = 80
+        private const val SHORT_FAILURE_MAX_LINES = 3
+        private const val SHORT_BATCH_ID_SIZE = 8
     }
 }

@@ -139,7 +139,6 @@ class HtmlSummaryReporter(
                 val htmlLine = line
                     .let { StringEscapeUtils.escapeXml11(it) }
                     .ifEmpty { "&nbsp;" }
-                    .replace("\t", "&nbsp;&nbsp;&nbsp;&nbsp;")
 
                 """<div class="log__${cssClassForLogcatLine(line)}">$htmlLine</div>"""
             }
