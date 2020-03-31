@@ -38,7 +38,13 @@ class ExecutionReportGenerator(private val reporters: List<Reporter>) : TrackerI
             executingBatchEvent.sortedBy { it.start },
             cacheStoreEvent.sortedBy { it.start },
             cacheLoadEvent.sortedBy { it.start },
-            testEvents.sortedBy { it.instant }
+            testEvents.sortedBy {
+                if (it.testResult.isTimeInfoAvailable) {
+                    it.testResult.startTime
+                } else {
+                    it.instant.toEpochMilli()
+                }
+            }
         )
 
         for (reporter in reporters) {
