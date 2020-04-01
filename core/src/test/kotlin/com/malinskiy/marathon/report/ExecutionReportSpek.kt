@@ -84,7 +84,8 @@ class ExecutionReportSpek : Spek(
                     deviceInfo,
                     status,
                     0,
-                    100
+                    100,
+                    "test_batch_id"
                 ),
                 final
             )

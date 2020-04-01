@@ -35,7 +35,11 @@ class AndroidDeviceTestRunner(private val device: DdmlibAndroidDevice) {
         val androidComponentInfo = rawTestBatch.componentInfo as AndroidComponentInfo
 
         val ignoredTests = rawTestBatch.tests.filter { it.metaProperties.contains(JUNIT_IGNORE_META_PROPERY) }
-        val testBatch = TestBatch(rawTestBatch.tests - ignoredTests, rawTestBatch.componentInfo)
+        val testBatch = TestBatch(
+            id = rawTestBatch.id,
+            tests = rawTestBatch.tests - ignoredTests,
+            componentInfo = rawTestBatch.componentInfo
+        )
 
         val androidConfiguration = configuration.vendorConfiguration as AndroidConfiguration
         val info = ApkParser().parseInstrumentationInfo(androidComponentInfo.testApplicationOutput)

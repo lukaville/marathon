@@ -4,6 +4,8 @@ import com.malinskiy.marathon.device.DeviceInfo
 import com.malinskiy.marathon.device.DevicePoolId
 import com.malinskiy.marathon.execution.TestResult
 import com.malinskiy.marathon.execution.TestStatus
+import com.malinskiy.marathon.report.summary.Batch
+import com.malinskiy.marathon.report.summary.TestSummary
 import com.malinskiy.marathon.test.Test
 import java.time.Instant
 
@@ -27,6 +29,10 @@ data class ExecutionReport(
         Summary(poolsSummary)
     }
 
+    val testSummaries: Map<Test, TestSummary> by lazy {
+        createTestSummaries()
+    }
+
     val allEvents: List<Event> by lazy {
         listOf(
             deviceConnectedEvents,
@@ -42,6 +48,34 @@ data class ExecutionReport(
             .flatten()
     }
 
+    private fun createTestSummaries(): Map<Test, TestSummary> {
+        val resultsByTest: Map<Test, List<TestResult>> = testEvents
+            .groupBy(keySelector = { it.testResult.test }, valueTransform = { it.testResult })
+
+        val batches: Map<String, Batch> = testEvents
+            .groupBy(keySelector = { it.testResult.batchId }, valueTransform = { it.testResult })
+            .map { it.key to Batch(batchId = it.key, testResults = it.value) }
+            .toMap()
+
+        val summaries = hashMapOf<Test, TestSummary>()
+
+        testEvents.forEach {
+            val test = it.testResult.test
+            if (test !in summaries) {
+                val allTestRuns = resultsByTest[test] ?: emptyList()
+                val allBatches = allTestRuns
+                    .map { result -> result.batchId }
+                    .toSet()
+                    .map { batchId -> batches.getValue(batchId) }
+
+                summaries[test] = TestSummary(test, allTestRuns, allBatches)
+            }
+        }
+
+        return summaries
+    }
+
+
     private fun compilePoolSummary(poolId: DevicePoolId): PoolSummary {
         val devices = deviceConnectedEvents.filter { it.poolId == poolId }.map { it.device }.distinctBy { it.serialNumber }
 
@@ -55,13 +89,13 @@ data class ExecutionReport(
         val passed = tests.count { it.status == TestStatus.PASSED }
         val ignored = tests.count {
             it.status == TestStatus.IGNORED
-                    || it.status == TestStatus.ASSUMPTION_FAILURE
+                || it.status == TestStatus.ASSUMPTION_FAILURE
         }
         val fromCache = tests.count { it.isFromCache }
         val failed = tests.count {
             it.status != TestStatus.PASSED
-                    && it.status != TestStatus.IGNORED
-                    && it.status != TestStatus.ASSUMPTION_FAILURE
+                && it.status != TestStatus.IGNORED
+                && it.status != TestStatus.ASSUMPTION_FAILURE
         }
         val duration = tests.map { it.durationMillis() }.sum()
 
@@ -70,7 +104,7 @@ data class ExecutionReport(
         val rawPassed = rawTests.count { it.status == TestStatus.PASSED }
         val rawIgnored = rawTests.count {
             it.status == TestStatus.IGNORED
-                    || it.status == TestStatus.ASSUMPTION_FAILURE
+                || it.status == TestStatus.ASSUMPTION_FAILURE
         }
         val rawFailed = rawTests.count { it.status == TestStatus.FAILURE }
         val rawIncomplete = rawTests.count { it.status == TestStatus.INCOMPLETE }

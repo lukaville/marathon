@@ -6,27 +6,33 @@ import com.malinskiy.marathon.execution.TestResult
 import com.malinskiy.marathon.execution.TestStatus
 import com.malinskiy.marathon.io.FileManager
 import com.malinskiy.marathon.io.FileType
+import com.malinskiy.marathon.report.summary.TestSummaryFormatter
+import com.malinskiy.marathon.report.summary.TestSummary
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.*
 import javax.xml.stream.XMLOutputFactory
 import javax.xml.stream.XMLStreamWriter
 
-class JUnitWriter(private val fileManager: FileManager, private val fileType: FileType) {
+class JUnitWriter(
+    private val fileManager: FileManager,
+    private val fileType: FileType,
+    private val testSummaryFormatter: TestSummaryFormatter
+) {
 
-    fun testFinished(devicePoolId: DevicePoolId, device: DeviceInfo, testResult: TestResult) {
+    fun testFinished(devicePoolId: DevicePoolId, device: DeviceInfo, testResult: TestResult, testSummary: TestSummary?) {
         val file = fileManager.createFile(fileType, devicePoolId, device, testResult.test)
         file.createNewFile()
 
         val writer = XMLOutputFactory.newFactory().createXMLStreamWriter(FileOutputStream(file), "UTF-8")
 
-        generateXml(writer, testResult)
+        generateXml(writer, testResult, testSummary)
         writer.flush()
         writer.close()
     }
 
     @Suppress("ComplexMethod")
-    private fun generateXml(writer: XMLStreamWriter, testResult: TestResult) {
+    private fun generateXml(writer: XMLStreamWriter, testResult: TestResult, testSummary: TestSummary?) {
         @Suppress("MagicNumber")
         fun Long.toJUnitSeconds(): String = (this / 1000.0).toString()
 
@@ -54,7 +60,7 @@ class JUnitWriter(private val fileManager: FileManager, private val fileType: Fi
                     attribute("name", test.method)
                     attribute("time", testResult.durationMillis().toJUnitSeconds())
                     element("system-out") {
-                        writeCharacters(createStdOutInfo(testResult))
+                        writeCharacters(testSummaryFormatter.formatTestResultSummary(testResult, testSummary))
                     }
                     when (testResult.status) {
                         TestStatus.IGNORED, TestStatus.ASSUMPTION_FAILURE -> {
@@ -75,13 +81,5 @@ class JUnitWriter(private val fileManager: FileManager, private val fileType: Fi
                 }
             }
         }
-    }
-
-    private fun createStdOutInfo(testResult: TestResult): String {
-        val stringBuilder = StringBuilder()
-        stringBuilder.appendln("Test status: ${testResult.status}")
-        stringBuilder.appendln("Is strict run: ${testResult.isStrictRun}")
-        stringBuilder.appendln("Is from cache: ${testResult.isFromCache}")
-        return stringBuilder.toString()
     }
 }

@@ -21,7 +21,10 @@ class FixedSizeBatchingStrategy(
             // We optimize last mile by disabling batching completely.
             // This allows us to parallelize the test runs at the end instead of running batches in series
             val item = queue.poll()
-            return TestBatch(listOf(item), item.componentInfo)
+            return TestBatch(
+                tests = listOf(item),
+                componentInfo = item.componentInfo
+            )
         }
 
         var componentInfo: ComponentInfo? = null
@@ -63,7 +66,10 @@ class FixedSizeBatchingStrategy(
             queue.addAll(duplicates)
         }
 
-        return TestBatch(result.toList(), componentInfo!!)
+        return TestBatch(
+            tests = result.toList(),
+            componentInfo = componentInfo!!
+        )
     }
 
     override fun equals(other: Any?): Boolean {

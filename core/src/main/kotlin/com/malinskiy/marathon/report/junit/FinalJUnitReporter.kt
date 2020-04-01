@@ -2,11 +2,19 @@ package com.malinskiy.marathon.report.junit
 
 import com.malinskiy.marathon.analytics.internal.sub.ExecutionReport
 import com.malinskiy.marathon.report.Reporter
+import com.malinskiy.marathon.report.summary.TestSummary
+import com.malinskiy.marathon.test.Test
 
 internal class FinalJUnitReporter(private val jUnitWriter: JUnitWriter) : Reporter {
     override fun generate(executionReport: ExecutionReport) {
-        executionReport.testEvents.filter { it.final }.forEach { event ->
-            jUnitWriter.testFinished(event.poolId, event.device, event.testResult)
-        }
+        val summaries: Map<Test, TestSummary> = executionReport.testSummaries
+
+        executionReport
+            .testEvents
+            .filter { it.final }
+            .forEach { event ->
+                val summary = summaries[event.testResult.test]
+                jUnitWriter.testFinished(event.poolId, event.device, event.testResult, summary)
+            }
     }
 }
