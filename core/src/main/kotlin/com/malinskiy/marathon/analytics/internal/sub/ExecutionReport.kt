@@ -50,16 +50,11 @@ data class ExecutionReport(
 
     private fun createTestSummaries(): Map<Test, TestSummary> {
         val resultsByTest: Map<Test, List<TestResult>> = testEvents
-            .groupBy { it.testResult.test }
-            .map { it.key to it.value.map { event -> event.testResult } }
-            .toMap()
+            .groupBy(keySelector = { it.testResult.test }, valueTransform = { it.testResult })
 
         val batches: Map<String, Batch> = testEvents
-            .groupBy { it.testResult.batchId }
-            .map {
-                val testResults = it.value.map { it.testResult }
-                it.key to Batch(it.key, testResults)
-            }
+            .groupBy(keySelector = { it.testResult.batchId }, valueTransform = { it.testResult })
+            .map { it.key to Batch(batchId = it.key, testResults = it.value) }
             .toMap()
 
         val summaries = hashMapOf<Test, TestSummary>()
