@@ -1,7 +1,6 @@
 package com.malinskiy.marathon.android
 
 import com.android.sdklib.AndroidVersion
-import com.malinskiy.marathon.android.executor.listeners.line.LineListener
 import com.malinskiy.marathon.android.executor.listeners.video.ScreenRecorderHandler
 import com.malinskiy.marathon.android.executor.listeners.video.ScreenRecorderOptions
 import com.malinskiy.marathon.device.Device
@@ -23,12 +22,9 @@ interface AndroidDevice : Device {
     fun safeExecuteShellCommand(command: String): String
     fun getScreenshot(timeout: Long, units: TimeUnit): BufferedImage
 
-    fun addLogcatListener(listener: LineListener)
-    fun removeLogcatListener(listener: LineListener)
     fun safeStartScreenRecorder(
         handler: ScreenRecorderHandler,
         remoteFilePath: String,
-        listener: LineListener,
         options: ScreenRecorderOptions
     )
 }
