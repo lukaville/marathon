@@ -35,6 +35,7 @@ class AndroidDeviceSpek : Spek(
                     mock(),
                     mock(),
                     SerialStrategy.AUTOMATIC,
+                    mock(),
                     mock()
                 ).model shouldBe "Unknown"
             }
@@ -49,6 +50,7 @@ class AndroidDeviceSpek : Spek(
                     mock(),
                     mock(),
                     SerialStrategy.AUTOMATIC,
+                    mock(),
                     mock()
                 ).manufacturer shouldBe "Unknown"
             }
@@ -65,6 +67,7 @@ class AndroidDeviceSpek : Spek(
                     mock(),
                     mock(),
                     SerialStrategy.AUTOMATIC,
+                    mock(),
                     mock()
                 ).operatingSystem.version shouldBeEqualTo default.apiString
             }

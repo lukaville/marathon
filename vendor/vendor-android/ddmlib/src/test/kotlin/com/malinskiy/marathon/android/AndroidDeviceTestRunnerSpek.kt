@@ -45,6 +45,7 @@ class AndroidDeviceTestRunnerSpek : Spek(
                     mock(),
                     mock(),
                     SerialStrategy.AUTOMATIC,
+                    mock(),
                     mock()
                 )
                 val androidDeviceTestRunner = AndroidDeviceTestRunner(device)
