@@ -25,6 +25,15 @@ class BatchLogSaver {
         }
     }
 
+    fun close(test: LogTest) {
+        testLogSavers[test]?.close()
+    }
+
+    fun close() {
+        testLogSavers.values.forEach(LogSaver::close)
+        logSaver.close()
+    }
+
     fun createBatchLogs(): BatchLogs {
         val tests = testLogSavers
             .mapValues { it.value.createLog() }
@@ -45,16 +54,24 @@ class BatchLogSaver {
         private val logFile: File = createTempFile()
         private val fileWriter: Writer = logFile.bufferedWriter()
         private val events: MutableList<LogEvent> = arrayListOf()
+        private var isClosed = false
 
         fun saveEntry(entry: SaveEntry) {
+            if (isClosed) return
+
             when (entry) {
                 is SaveEntry.Message -> fileWriter.writeMessage(entry.message)
                 is SaveEntry.Event -> events.add(entry.event)
             }
         }
 
-        fun createLog(): Log {
+        fun close() {
+            isClosed = true
             fileWriter.close()
+        }
+
+        fun createLog(): Log {
+            close()
             return Log(logFile, events)
         }
 

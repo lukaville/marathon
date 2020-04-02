@@ -38,7 +38,7 @@ class LogcatCollector : LogcatEventsListener, LogReportProvider {
                     logger.error { "Incorrect state: batch ${event.batchId} finished but not started (state = ${oldState})" }
                     return
                 }
-
+                batchCollectors[event.batchId]?.close()
                 devices[event.device] = oldState.copy(currentBatchId = null, currentTest = null)
             }
             is LogcatEvent.TestStarted -> {
@@ -62,9 +62,12 @@ class LogcatCollector : LogcatEventsListener, LogReportProvider {
                     return
                 }
 
+                batchCollectors[oldState.currentBatchId]?.close(event.test)
                 devices[event.device] = oldState.copy(currentTest = null)
             }
             is LogcatEvent.DeviceDisconnected -> {
+                val currentBatchId = devices[event.device]?.currentBatchId
+                batchCollectors[currentBatchId]?.close()
                 devices[event.device] = DeviceState()
             }
         }
