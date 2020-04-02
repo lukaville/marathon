@@ -7,9 +7,8 @@ import com.malinskiy.marathon.report.logs.LogEvent
 import com.malinskiy.marathon.report.logs.LogTest
 import java.io.File
 import java.io.Writer
-import java.time.format.DateTimeFormatterBuilder
-import java.time.temporal.ChronoField
-import java.util.*
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 class BatchLogSaver {
 
@@ -52,6 +51,8 @@ class BatchLogSaver {
     private class LogSaver {
 
         private val logFile: File = createTempFile()
+            .also { it.deleteOnExit() }
+
         private val fileWriter: Writer = logFile.bufferedWriter()
         private val events: MutableList<LogEvent> = arrayListOf()
         private var isClosed = false
@@ -81,11 +82,9 @@ class BatchLogSaver {
         }
 
         private companion object {
-            private val LOGCAT_TIMESTAMP_FORMATTER = DateTimeFormatterBuilder()
-                .appendValue(ChronoField.INSTANT_SECONDS)
-                .appendFraction(ChronoField.MILLI_OF_SECOND, 3, 3, true)
-                .toFormatter(Locale.ROOT)
-
+            private val LOGCAT_TIMESTAMP_FORMATTER = DateTimeFormatter
+                .ofPattern("MM-dd HH:mm:ss.SSS")
+                .withZone(ZoneId.systemDefault());
         }
     }
 }
