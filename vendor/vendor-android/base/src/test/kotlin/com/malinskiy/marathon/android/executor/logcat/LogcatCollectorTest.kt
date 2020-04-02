@@ -10,8 +10,8 @@ import com.malinskiy.marathon.android.executor.logcat.model.LogcatEvent.TestStar
 import com.malinskiy.marathon.android.executor.logcat.model.LogcatMessage
 import com.malinskiy.marathon.report.logs.LogTest
 import org.amshove.kluent.mock
-import org.amshove.kluent.shouldEqual
 import org.amshove.kluent.shouldEqualTo
+import org.amshove.kluent.shouldMatch
 import org.amshove.kluent.shouldNotBe
 import org.junit.jupiter.api.Test
 import java.time.Instant
@@ -75,7 +75,7 @@ class LogcatCollectorTest {
         report.batches.size shouldEqualTo 1
         report.batches["abc"] shouldNotBe null
         report.batches.getValue("abc").tests[test] shouldNotBe null
-        report.batches.getValue("abc").tests.getValue(test).file.readText() shouldEqual "04-02 18:56:40.000 0-0/test E/test: Exception!\n"
+        report.batches.getValue("abc").tests.getValue(test).file.readText() shouldMatch ".* 0-0/test E/test: Exception!\n".toRegex()
     }
 
     @Test
@@ -94,7 +94,7 @@ class LogcatCollectorTest {
         report.batches.size shouldEqualTo 1
         report.batches["abc"] shouldNotBe null
         report.batches.getValue("abc").tests[test] shouldNotBe null
-        report.batches.getValue("abc").tests.getValue(test).file.readText() shouldEqual "04-02 18:56:40.000 0-0/test E/test: Exception!\n"
+        report.batches.getValue("abc").tests.getValue(test).file.readText() shouldMatch ".* 0-0/test E/test: Exception!\n".toRegex()
     }
 
     @Test
@@ -110,7 +110,7 @@ class LogcatCollectorTest {
         val report = collector.getLogReport()
         report.batches.size shouldEqualTo 1
         report.batches["abc"] shouldNotBe null
-        report.batches.getValue("abc").log.file.readText() shouldEqual "04-02 18:56:40.000 0-0/test E/test: Exception!\n"
+        report.batches.getValue("abc").log.file.readText() shouldMatch ".* 0-0/test E/test: Exception!\n".toRegex()
     }
 
     @Test
