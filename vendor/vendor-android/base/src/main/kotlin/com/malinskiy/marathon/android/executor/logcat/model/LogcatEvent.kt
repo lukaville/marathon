@@ -3,35 +3,37 @@ package com.malinskiy.marathon.android.executor.logcat.model
 import com.malinskiy.marathon.android.AndroidDevice
 import com.malinskiy.marathon.report.logs.LogTest
 
-sealed class LogcatEvent(val device: AndroidDevice) {
+sealed class LogcatEvent {
 
-    class Message(
+    abstract val device: AndroidDevice
+
+    data class Message(
         val logcatMessage: LogcatMessage,
-        device: AndroidDevice
-    ) : LogcatEvent(device)
+        override val device: AndroidDevice
+    ) : LogcatEvent()
 
-    class BatchStarted(
+    data class BatchStarted(
         val batchId: String,
-        device: AndroidDevice
-    ) : LogcatEvent(device)
+        override val device: AndroidDevice
+    ) : LogcatEvent()
 
-    class BatchFinished(
+    data class BatchFinished(
         val batchId: String,
-        device: AndroidDevice
-    ) : LogcatEvent(device)
+        override val device: AndroidDevice
+    ) : LogcatEvent()
 
-    class TestStarted(
+    data class TestStarted(
         val test: LogTest,
         val processId: Int,
-        device: AndroidDevice
-    ) : LogcatEvent(device)
+        override val device: AndroidDevice
+    ) : LogcatEvent()
 
-    class TestFinished(
+    data class TestFinished(
         val test: LogTest,
         val processId: Int,
-        device: AndroidDevice
-    ) : LogcatEvent(device)
+        override val device: AndroidDevice
+    ) : LogcatEvent()
 
-    class DeviceDisconnected(device: AndroidDevice) : LogcatEvent(device)
+    data class DeviceDisconnected(override val device: AndroidDevice) : LogcatEvent()
 
 }
