@@ -16,6 +16,7 @@ class LogcatCollector : LogcatEventsListener, LogReportProvider {
     private val devices: MutableMap<Device, DeviceState> = hashMapOf()
     private val batchCollectors: MutableMap<String, BatchLogSaver> = hashMapOf()
 
+    @Synchronized
     override fun onLogcatEvent(event: LogcatEvent) {
         when (event) {
             is LogcatEvent.Message -> {
@@ -69,6 +70,7 @@ class LogcatCollector : LogcatEventsListener, LogReportProvider {
         }
     }
 
+    @Synchronized
     override fun getLogReport(): LogReport =
         LogReport(batchCollectors.mapValues { it.value.createBatchLogs() })
 
