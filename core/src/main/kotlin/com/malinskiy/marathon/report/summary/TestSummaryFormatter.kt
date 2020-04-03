@@ -19,7 +19,7 @@ class TestSummaryFormatter {
                 val isCurrent = testResult == currentTestResult
                 val bulletSymbol = if (isCurrent) ">" else "*"
 
-                stringBuilder.append("\u00a0\u00a0$bulletSymbol ${currentTestResult.status}")
+                stringBuilder.append("\u00a0\u00a0$bulletSymbol ${testResult.status}")
 
                 val additionalInfo = listOfNotNull(
                     testResult.device.serialNumber,

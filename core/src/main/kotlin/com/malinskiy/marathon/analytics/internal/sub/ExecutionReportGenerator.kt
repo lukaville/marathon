@@ -3,7 +3,11 @@ package com.malinskiy.marathon.analytics.internal.sub
 import com.malinskiy.marathon.report.Reporter
 import java.util.*
 
-class ExecutionReportGenerator(private val reporters: List<Reporter>) : TrackerInternal {
+class ExecutionReportGenerator(
+    private val reporters: List<Reporter>,
+    private val testEventInflatorsFactory: () -> List<TestEventInflator>
+) : TrackerInternal {
+
     private val devicePreparingEvents: MutableList<DevicePreparingEvent> = Collections.synchronizedList(LinkedList())
     private val deviceConnectedEvents: MutableList<DeviceConnectedEvent> = Collections.synchronizedList(LinkedList())
     private val deviceProviderPreparingEvents: MutableList<DeviceProviderPreparingEvent> = Collections.synchronizedList(LinkedList())
@@ -29,6 +33,13 @@ class ExecutionReportGenerator(private val reporters: List<Reporter>) : TrackerI
     }
 
     override fun close() {
+        val testEventInflators = testEventInflatorsFactory.invoke()
+
+        val testEvents = testEvents
+            .map {
+                testEventInflators.fold(it) { event, inflator -> inflator.inflate(event) }
+            }
+
         val report = ExecutionReport(
             deviceConnectedEvents.sortedBy { it.instant },
             devicePreparingEvents.sortedBy { it.start },

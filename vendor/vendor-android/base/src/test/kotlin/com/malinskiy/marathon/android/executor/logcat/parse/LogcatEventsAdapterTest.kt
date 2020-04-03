@@ -1,0 +1,198 @@
+package com.malinskiy.marathon.android.executor.logcat.parse
+
+import com.malinskiy.marathon.android.AndroidDevice
+import com.malinskiy.marathon.android.executor.logcat.model.LogLevel
+import com.malinskiy.marathon.android.executor.logcat.model.LogcatEvent
+import com.malinskiy.marathon.android.executor.logcat.model.LogcatEvent.DeviceDisconnected
+import com.malinskiy.marathon.android.executor.logcat.model.LogcatMessage
+import com.malinskiy.marathon.report.logs.LogTest
+import org.amshove.kluent.mock
+import org.amshove.kluent.shouldBe
+import org.amshove.kluent.shouldBeInstanceOf
+import org.amshove.kluent.shouldEqual
+import org.amshove.kluent.shouldEqualTo
+import org.junit.jupiter.api.Test
+import java.time.Instant
+
+class LogcatEventsAdapterTest {
+
+    private val output = mutableListOf<LogcatEvent>()
+    private val adapter = LogcatEventsAdapter(object : LogcatEventsListener {
+        override fun onLogcatEvent(event: LogcatEvent) {
+            output.add(event)
+        }
+    })
+
+    @Test
+    fun `on message with device - creates logcat event with the same device`() {
+        val device = mock<AndroidDevice>()
+
+        adapter.onMessage(device, createLogcatMessage())
+
+        output.size shouldEqualTo 1
+        output.first().device shouldBe device
+    }
+
+    @Test
+    fun `on device disconnected - passes disconnected event`() {
+        val device = mock<AndroidDevice>()
+
+        adapter.onDeviceDisconnected(device)
+
+        output.size shouldEqualTo 1
+        output.first() shouldBeInstanceOf DeviceDisconnected::class.java
+        output.first().device shouldBe device
+    }
+
+    @Test
+    fun `on test start logcat message - passes test started event and logcat message event`() {
+        val device = mock<AndroidDevice>()
+        val message = createLogcatMessage(
+            processId = 123,
+            tag = "TestRunner",
+            body = "started: testMethod(com.test.app.TestClass)"
+        )
+
+        adapter.onMessage(device, message)
+
+        output shouldEqual listOf(
+            LogcatEvent.TestStarted(
+                test = LogTest("com.test.app", "TestClass", "testMethod"),
+                processId = 123,
+                device = device
+            ),
+            LogcatEvent.Message(
+                logcatMessage = message,
+                device = device
+            )
+        )
+    }
+
+    @Test
+    fun `on test finished logcat message - passes test finished event and logcat message event`() {
+        val device = mock<AndroidDevice>()
+        val message = createLogcatMessage(
+            processId = 123,
+            tag = "TestRunner",
+            body = "finished: testMethod(com.test.app.TestClass)"
+        )
+
+        adapter.onMessage(device, message)
+
+        output shouldEqual listOf(
+            LogcatEvent.Message(
+                logcatMessage = message,
+                device = device
+            ),
+            LogcatEvent.TestFinished(
+                test = LogTest("com.test.app", "TestClass", "testMethod"),
+                processId = 123,
+                device = device
+            )
+        )
+    }
+
+    @Test
+    fun `on test start logcat message - no package name - passes test started event with empty package name`() {
+        val device = mock<AndroidDevice>()
+        val message = createLogcatMessage(
+            processId = 123,
+            tag = "TestRunner",
+            body = "started: testMethod(TestClass)"
+        )
+
+        adapter.onMessage(device, message)
+
+        output shouldEqual listOf(
+            LogcatEvent.TestStarted(
+                test = LogTest("", "TestClass", "testMethod"),
+                processId = 123,
+                device = device
+            ),
+            LogcatEvent.Message(
+                logcatMessage = message,
+                device = device
+            )
+        )
+    }
+
+    @Test
+    fun `on batch start logcat message - passes batch started event with batch id`() {
+        val device = mock<AndroidDevice>()
+        val message = createLogcatMessage(
+            tag = "marathon",
+            body = "batch_started: {abcdef}"
+        )
+
+        adapter.onMessage(device, message)
+
+        output shouldEqual listOf(
+            LogcatEvent.BatchStarted(
+                batchId = "abcdef",
+                device = device
+            ),
+            LogcatEvent.Message(
+                logcatMessage = message,
+                device = device
+            )
+        )
+    }
+
+    @Test
+    fun `on batch finished logcat message - passes batch finished event with batch id`() {
+        val device = mock<AndroidDevice>()
+        val message = createLogcatMessage(
+            tag = "marathon",
+            body = "batch_finished: {abcdef}"
+        )
+
+        adapter.onMessage(device, message)
+
+        output shouldEqual listOf(
+            LogcatEvent.Message(
+                logcatMessage = message,
+                device = device
+            ),
+            LogcatEvent.BatchFinished(
+                batchId = "abcdef",
+                device = device
+            )
+        )
+    }
+
+    @Test
+    fun `on unknown logcat message - passes generic logcat message event`() {
+        val device = mock<AndroidDevice>()
+        val message = createLogcatMessage(
+            tag = "TestLog",
+            body = "some log"
+        )
+
+        adapter.onMessage(device, message)
+
+        output shouldEqual listOf(
+            LogcatEvent.Message(
+                logcatMessage = message,
+                device = device
+            )
+        )
+    }
+
+    private fun createLogcatMessage(
+        timestamp: Instant = Instant.now(),
+        processId: Int = 0,
+        threadId: Int = 0,
+        applicationName: String = "test",
+        logLevel: LogLevel = LogLevel.ERROR,
+        tag: String = "test",
+        body: String = "test"
+    ): LogcatMessage = LogcatMessage(
+        timestamp = timestamp,
+        processId = processId,
+        threadId = threadId,
+        applicationName = applicationName,
+        logLevel = logLevel,
+        tag = tag,
+        body = body
+    )
+}

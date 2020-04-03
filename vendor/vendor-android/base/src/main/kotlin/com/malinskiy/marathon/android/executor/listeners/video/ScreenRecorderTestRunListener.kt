@@ -3,8 +3,6 @@ package com.malinskiy.marathon.android.executor.listeners.video
 import com.malinskiy.marathon.android.AndroidDevice
 import com.malinskiy.marathon.android.exception.TransferException
 import com.malinskiy.marathon.android.executor.listeners.TestRunListener
-import com.malinskiy.marathon.android.executor.listeners.line.LineListener
-import com.malinskiy.marathon.android.executor.listeners.line.NullOutputListener
 import com.malinskiy.marathon.execution.AttachmentType
 import com.malinskiy.marathon.io.AttachmentManager
 import com.malinskiy.marathon.io.FileType
@@ -34,14 +32,13 @@ class ScreenRecorderTestRunListener(
 
     private var hasFailed: Boolean = false
     private var recorder: Thread? = null
-    private var outputListener: LineListener = NullOutputListener()
 
     private val awaitMillis = MS_IN_SECOND
 
     override fun testStarted(test: Test) {
         hasFailed = false
 
-        val screenRecorder = ScreenRecorder(device, outputListener, device.fileManager.remoteVideoForTest(test))
+        val screenRecorder = ScreenRecorder(device, device.fileManager.remoteVideoForTest(test))
         handler = ScreenRecorderHandler()
         recorder = kotlin.concurrent.thread {
             screenRecorder.run(handler!!)

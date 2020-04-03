@@ -5,7 +5,7 @@ object Versions {
     val coroutines = "1.3.1"
     val ktor = "1.2.6"
 
-    val ddmlib = "26.3.0"
+    val ddmlib = "26.6.1"
     val dexTestParser = "830520963019a6cefada34fc5eb396003c1468d5" // contains patch https://github.com/linkedin/dex-test-parser/pull/46
     val kotlinLogging = "1.4.9"
     val slf4jAPI = "1.0.0"
@@ -17,6 +17,7 @@ object Versions {
     val androidGradleVersion = "3.3.0"
 
     val spek = "1.1.5"
+    val junit5 = "5.6.0"
     val kluent = "1.40"
 
     val kakao = "1.4.0"
@@ -100,6 +101,7 @@ object Libraries {
 object TestLibraries {
     val spekAPI = "org.jetbrains.spek:spek-api:${Versions.spek}"
     val spekJUnitPlatformEngine = "org.jetbrains.spek:spek-junit-platform-engine:${Versions.spek}"
+    val junit5 = "org.junit.jupiter:junit-jupiter:${Versions.junit5}"
     val kluent = "org.amshove.kluent:kluent:${Versions.kluent}"
     val kakao = "com.agoda.kakao:kakao:${Versions.kakao}"
     val ktorClientMock = "io.ktor:ktor-client-mock-jvm:${Versions.ktor}"

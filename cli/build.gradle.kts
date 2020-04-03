@@ -1,14 +1,10 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import org.junit.platform.gradle.plugin.EnginesExtension
-import org.junit.platform.gradle.plugin.FiltersExtension
-import org.junit.platform.gradle.plugin.JUnitPlatformExtension
 
 plugins {
     application
     id("idea")
     id("org.jetbrains.kotlin.jvm")
     id("org.jetbrains.dokka")
-    id("org.junit.platform.gradle.plugin")
     id("de.fuerstenau.buildconfig") version "1.1.8"
 }
 
@@ -61,10 +57,6 @@ dependencies {
     implementation(Libraries.jacksonYaml)
     implementation(Libraries.jacksonJSR310)
     implementation(Libraries.apacheCommonsText)
-    testCompile(TestLibraries.kluent)
-    testCompile(TestLibraries.mockitoKotlin)
-    testCompile(TestLibraries.spekAPI)
-    testRuntime(TestLibraries.spekJUnitPlatformEngine)
 }
 
 Deployment.initialize(project)
@@ -87,25 +79,4 @@ idea {
     }
 }
 
-junitPlatform {
-    filters {
-        engines {
-            include("spek")
-        }
-    }
-}
-
-// extension for configuration
-fun JUnitPlatformExtension.filters(setup: FiltersExtension.() -> Unit) {
-    when (this) {
-        is ExtensionAware -> extensions.getByType(FiltersExtension::class.java).setup()
-        else -> throw IllegalArgumentException("${this::class} must be an instance of ExtensionAware")
-    }
-}
-
-fun FiltersExtension.engines(setup: EnginesExtension.() -> Unit) {
-    when (this) {
-        is ExtensionAware -> extensions.getByType(EnginesExtension::class.java).setup()
-        else -> throw IllegalArgumentException("${this::class} must be an instance of ExtensionAware")
-    }
-}
+Testing.configure(this)

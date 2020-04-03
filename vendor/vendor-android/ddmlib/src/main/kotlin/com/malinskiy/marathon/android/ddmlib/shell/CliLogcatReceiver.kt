@@ -24,7 +24,7 @@ class CliLogcatReceiver(
         val logcatFile = createFile()
         val receiver = LogcatParserListener(device, listener)
 
-        process = executeCommandUsingCli(logcatFile, "logcat", "-v", "long")
+        process = executeCommandUsingCli(logcatFile, "logcat", "-v", "long", "-v", "epoch")
         tailer = Tailer.create(
             logcatFile,
             receiver,
