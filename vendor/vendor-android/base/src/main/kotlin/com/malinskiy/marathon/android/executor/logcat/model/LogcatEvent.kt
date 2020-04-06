@@ -34,7 +34,7 @@ sealed class LogcatEvent {
         override val device: AndroidDevice
     ) : LogcatEvent()
 
-    data class NativeCrashFatalSignal(
+    data class FatalError(
         val message: String,
         val processId: Int,
         override val device: AndroidDevice

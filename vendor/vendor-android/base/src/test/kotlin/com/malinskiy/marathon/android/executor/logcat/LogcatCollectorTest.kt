@@ -4,8 +4,8 @@ import com.malinskiy.marathon.android.AndroidDevice
 import com.malinskiy.marathon.android.executor.logcat.model.LogLevel
 import com.malinskiy.marathon.android.executor.logcat.model.LogcatEvent.BatchFinished
 import com.malinskiy.marathon.android.executor.logcat.model.LogcatEvent.BatchStarted
+import com.malinskiy.marathon.android.executor.logcat.model.LogcatEvent.FatalError
 import com.malinskiy.marathon.android.executor.logcat.model.LogcatEvent.Message
-import com.malinskiy.marathon.android.executor.logcat.model.LogcatEvent.NativeCrashFatalSignal
 import com.malinskiy.marathon.android.executor.logcat.model.LogcatEvent.TestFinished
 import com.malinskiy.marathon.android.executor.logcat.model.LogcatEvent.TestStarted
 import com.malinskiy.marathon.android.executor.logcat.model.LogcatMessage
@@ -43,13 +43,13 @@ class LogcatCollectorTest {
     }
 
     @Test
-    fun `on test run with one batch and one test with crash event in the same process - saves crash event for the test`() {
+    fun `on test run with one batch and one test with fatal error event in the same process - saves crash event for the test`() {
         val test = LogTest("com.app", "Test", "method")
         val logcatMessage = createLogcatMessage(body = "Exception!")
 
         collector.onLogcatEvent(BatchStarted(batchId = "abc", device = device))
         collector.onLogcatEvent(TestStarted(test, processId = 123, device = device))
-        collector.onLogcatEvent(NativeCrashFatalSignal(message = "failure", processId = 123, device = device))
+        collector.onLogcatEvent(FatalError(message = "failure", processId = 123, device = device))
         collector.onLogcatEvent(Message(logcatMessage = logcatMessage, device = device))
         collector.onLogcatEvent(TestFinished(test, processId = 123, device = device))
         collector.onLogcatEvent(BatchFinished(batchId = "abc", device = device))
@@ -63,13 +63,13 @@ class LogcatCollectorTest {
     }
 
     @Test
-    fun `on test run with one batch and one test with crash event in different process - does not save crash event for the test`() {
+    fun `on test run with one batch and one test with fatal error event in different process - does not save crash event for the test`() {
         val test = LogTest("com.app", "Test", "method")
         val logcatMessage = createLogcatMessage(body = "Exception!")
 
         collector.onLogcatEvent(BatchStarted(batchId = "abc", device = device))
         collector.onLogcatEvent(TestStarted(test, processId = 123, device = device))
-        collector.onLogcatEvent(NativeCrashFatalSignal(message = "failure", processId = 9999, device = device))
+        collector.onLogcatEvent(FatalError(message = "failure", processId = 9999, device = device))
         collector.onLogcatEvent(Message(logcatMessage = logcatMessage, device = device))
         collector.onLogcatEvent(TestFinished(test, processId = 123, device = device))
         collector.onLogcatEvent(BatchFinished(batchId = "abc", device = device))
@@ -82,13 +82,13 @@ class LogcatCollectorTest {
     }
 
     @Test
-    fun `on test run with one batch and without test events, native crash occurred - saves crash event for the batch`() {
+    fun `on test run with one batch and without test events, fatal error happened - saves crash event for the batch`() {
         val test = LogTest("com.app", "Test", "method")
         val logcatMessage = createLogcatMessage(body = "Exception!")
 
         collector.onLogcatEvent(BatchStarted(batchId = "abc", device = device))
         collector.onLogcatEvent(TestStarted(test, processId = 123, device = device))
-        collector.onLogcatEvent(NativeCrashFatalSignal(message = "failure", processId = 123, device = device))
+        collector.onLogcatEvent(FatalError(message = "failure", processId = 123, device = device))
         collector.onLogcatEvent(Message(logcatMessage = logcatMessage, device = device))
         collector.onLogcatEvent(TestFinished(test, processId = 123, device = device))
         collector.onLogcatEvent(BatchFinished(batchId = "abc", device = device))

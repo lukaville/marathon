@@ -27,7 +27,7 @@ class LogcatCollector : LogcatEventsListener, LogReportProvider {
                 val entry = SaveEntry.Message(event.logcatMessage)
                 batchCollector.save(entry, currentTest)
             }
-            is LogcatEvent.NativeCrashFatalSignal -> {
+            is LogcatEvent.FatalError -> {
                 val currentBatchId: String = devices[event.device]?.currentBatchId ?: return
                 val currentTestState = devices[event.device]?.currentTest
                 val batchCollector = batchCollectors.getOrPut(currentBatchId) { BatchLogSaver() }

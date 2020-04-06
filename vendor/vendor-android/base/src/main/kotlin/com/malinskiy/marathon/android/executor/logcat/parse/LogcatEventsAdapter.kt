@@ -5,8 +5,8 @@ import com.malinskiy.marathon.android.executor.logcat.LogcatListener
 import com.malinskiy.marathon.android.executor.logcat.model.LogcatEvent.BatchFinished
 import com.malinskiy.marathon.android.executor.logcat.model.LogcatEvent.BatchStarted
 import com.malinskiy.marathon.android.executor.logcat.model.LogcatEvent.DeviceDisconnected
+import com.malinskiy.marathon.android.executor.logcat.model.LogcatEvent.FatalError
 import com.malinskiy.marathon.android.executor.logcat.model.LogcatEvent.Message
-import com.malinskiy.marathon.android.executor.logcat.model.LogcatEvent.NativeCrashFatalSignal
 import com.malinskiy.marathon.android.executor.logcat.model.LogcatEvent.TestFinished
 import com.malinskiy.marathon.android.executor.logcat.model.LogcatEvent.TestStarted
 import com.malinskiy.marathon.android.executor.logcat.model.LogcatMessage
@@ -20,6 +20,7 @@ class LogcatEventsAdapter(private val parsedEventsListener: LogcatEventsListener
 
         parsedEventsListener.onLogcatEvent(Message(message, device))
         message.parseNativeCrash(device)?.let { parsedEventsListener.onLogcatEvent(it) }
+        message.parseJvmCrash(device)?.let { parsedEventsListener.onLogcatEvent(it) }
 
         message.parseTestFinished(device)?.let { parsedEventsListener.onLogcatEvent(it) }
         message.parseBatchFinished(device)?.let { parsedEventsListener.onLogcatEvent(it) }
@@ -29,9 +30,16 @@ class LogcatEventsAdapter(private val parsedEventsListener: LogcatEventsListener
         parsedEventsListener.onLogcatEvent(DeviceDisconnected(device))
     }
 
-    private fun LogcatMessage.parseNativeCrash(device: AndroidDevice): NativeCrashFatalSignal? =
+    private fun LogcatMessage.parseNativeCrash(device: AndroidDevice): FatalError? =
         if (tag == NATIVE_CRASH_REPORT_TAG && body.startsWith(NATIVE_CRASH_REPORT_PREFIX)) {
-            NativeCrashFatalSignal(body, processId, device)
+            FatalError(body, processId, device)
+        } else {
+            null
+        }
+
+    private fun LogcatMessage.parseJvmCrash(device: AndroidDevice): FatalError? =
+        if (tag == JVM_CRASH_REPORT_TAG && body.startsWith(JVM_CRASH_REPORT_PREFIX)) {
+            FatalError(body, processId, device)
         } else {
             null
         }
@@ -87,6 +95,9 @@ class LogcatEventsAdapter(private val parsedEventsListener: LogcatEventsListener
 
         private const val NATIVE_CRASH_REPORT_TAG = "libc"
         private const val NATIVE_CRASH_REPORT_PREFIX = "Fatal signal"
+
+        private const val JVM_CRASH_REPORT_TAG = "AndroidRuntime"
+        private const val JVM_CRASH_REPORT_PREFIX = "FATAL EXCEPTION"
 
         private const val TEST_STARTED_PREFIX = "started: "
         private const val TEST_FINISHED_PREFIX = "finished: "
