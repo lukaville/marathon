@@ -15,25 +15,26 @@ export default class ColorizedLogsComponent extends Component {
     }
 
     onDataReceived(data) {
-        this.setState({logs: data})
+        let logs = _parseLogcatMessages(data);
+        this.setState({logs: logs})
     }
 
     loadData(file, callback) {
-        var rawFile = new XMLHttpRequest();
+        const rawFile = new XMLHttpRequest();
         rawFile.overrideMimeType("application/json");
         rawFile.open("GET", file, true);
         rawFile.onreadystatechange = function () {
             if (rawFile.readyState === 4) {
                 if (rawFile.status === 200) {
                     callback(rawFile.responseText);
-                } else {
+                }
+                else {
                     callback("[]");
                 }
             }
         };
         rawFile.send(null);
     }
-
 
     render() {
         return (
@@ -56,58 +57,116 @@ export default class ColorizedLogsComponent extends Component {
                             <th>Time</th>
                             <th className="message">Message</th>
                         </tr>
-                        {!!this.state.logs && this.state.logs.split("\n").map((line) => {
-                            const arr = line.split(" ");
-                            const time = arr[0] + " " + arr[1];
-                            const process = arr[2].split("-")[0];
-                            const logArr = arr[3].split("/");
-                            const level = logArr[0];
-                            const tag = logArr[1].substring(0, logArr[1].length-1);
-                            const message = line.split(tag + ": ");
-
-                                function selectStyle(logLevel) {
-                                    switch (logLevel) {
-                                        case "W":
-                                            return "line warn";
-                                        case "D": {
-                                            return "line debug";
-                                        }
-                                        case "E": {
-                                            return "line error";
-                                        }
-                                        case "I": {
-                                            return "line info";
-                                        }
-                                        case "A": {
-                                            return "line assert";
-                                        }
-                                        case "V": {
-                                            return "line verbose";
-                                        }
-                                    }
-                                }
-
-                                return (<tr className={selectStyle(level)}>
-                                    <td>
-                                        {process}
-                                    </td>
-                                    <td>
-                                        {tag}
-                                    </td>
-                                    <td>{level}</td>
-                                    <td className="formatted-time">{time}</td>
-                                    <td>{message}</td>
-                                </tr>);
-                            }
-                        )}
+                        {!!this.state.logs && this.state.logs
+                            .map((message, index) =>
+                                     (<tr className={_selectStyle(message.priority)} key={index}>
+                                         <td>{message.processId}</td>
+                                         <td>{message.tag}</td>
+                                         <td>{message.priority}</td>
+                                         <td className="formatted-time">{message.time}</td>
+                                         <td>
+                                             <pre>{message.message}</pre>
+                                         </td>
+                                     </tr>)
+                            )}
                         </tbody>
                     </table>
                     {this.state.logs == null && <ReactLoading className="center"
                                                               type="bubbles"
                                                               color="#ff0000"
-                                                              delay="1"/>}
+                                                              delay={1}/>}
                 </div>
             </div>
         );
     }
+}
+
+function _selectStyle(logLevel) {
+    switch (logLevel) {
+        case "W":
+            return "line warn";
+        case "D": {
+            return "line debug";
+        }
+        case "E": {
+            return "line error";
+        }
+        case "I": {
+            return "line info";
+        }
+        case "A": {
+            return "line assert";
+        }
+        case "V": {
+            return "line verbose";
+        }
+    }
+}
+
+/**
+ * Pattern for header (MM-DD HH:MM:SS.mmm PID-TID/AppName LEVEL/TAG: message). Example:
+ *
+ * <pre>04-06 16:21:43.746 1852-25383/? D/GraphicBufferSource: got buffer with new dataSpace #104</pre>
+ *
+ * Group 1: Date + Time
+ * Group 2: PID
+ * Group 3: TID (hex on some systems!)
+ * Group 4: Log Level character
+ * Group 5: Tag
+ */
+function _parseLogcatMessages(response) {
+    const dateTimeRegexp = "\\d\\d-\\d\\d \\d\\d:\\d\\d:\\d\\d\.\\d\\d\\d";
+    const processIdRegexp = "\\d+";
+    const threadIdRegexp = "\\w+";
+    const appNameRegexp = ".*?";
+    const priorityRegexp = "[VDIWEAF]";
+    const tagRegexp = ".*?";
+    const messageRegexp = ".*";
+    const headerRegexp = new RegExp(
+        `^(${dateTimeRegexp}) (${processIdRegexp})-(${threadIdRegexp})/(${appNameRegexp}) (${priorityRegexp})/(${tagRegexp}): (${messageRegexp})`
+    );
+
+    const result = [];
+    let lastMessage = null;
+
+    response
+        .split("\n")
+        .filter(v => v !== '')
+        .forEach((line) => {
+            const headerParingResult = headerRegexp.exec(line);
+
+            if (headerParingResult) {
+                const time = headerParingResult[1];
+                const processId = headerParingResult[2];
+                const threadId = headerParingResult[3];
+                const appName = headerParingResult[4];
+                const priority = headerParingResult[5];
+                const tag = headerParingResult[6];
+                const message = headerParingResult[7];
+
+                if (lastMessage != null) {
+                    result.push(lastMessage);
+                }
+                lastMessage = {
+                    time,
+                    processId,
+                    threadId,
+                    appName,
+                    priority,
+                    tag,
+                    message
+                }
+            }
+            else {
+                if (lastMessage != null) {
+                    lastMessage.message = lastMessage.message + '\n' + line
+                }
+            }
+        });
+
+    if (lastMessage != null) {
+        result.push(lastMessage);
+    }
+
+    return result
 }
