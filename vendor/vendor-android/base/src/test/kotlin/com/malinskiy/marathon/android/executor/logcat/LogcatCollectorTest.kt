@@ -5,11 +5,15 @@ import com.malinskiy.marathon.android.executor.logcat.model.LogLevel
 import com.malinskiy.marathon.android.executor.logcat.model.LogcatEvent.BatchFinished
 import com.malinskiy.marathon.android.executor.logcat.model.LogcatEvent.BatchStarted
 import com.malinskiy.marathon.android.executor.logcat.model.LogcatEvent.Message
+import com.malinskiy.marathon.android.executor.logcat.model.LogcatEvent.NativeCrashFatalSignal
 import com.malinskiy.marathon.android.executor.logcat.model.LogcatEvent.TestFinished
 import com.malinskiy.marathon.android.executor.logcat.model.LogcatEvent.TestStarted
 import com.malinskiy.marathon.android.executor.logcat.model.LogcatMessage
+import com.malinskiy.marathon.report.logs.LogEvent
 import com.malinskiy.marathon.report.logs.LogTest
 import org.amshove.kluent.mock
+import org.amshove.kluent.shouldBe
+import org.amshove.kluent.shouldEqual
 import org.amshove.kluent.shouldEqualTo
 import org.amshove.kluent.shouldMatch
 import org.amshove.kluent.shouldNotBe
@@ -36,6 +40,65 @@ class LogcatCollectorTest {
         report.batches.size shouldEqualTo 1
         report.batches["abc"] shouldNotBe null
         report.batches.getValue("abc").tests[test] shouldNotBe null
+    }
+
+    @Test
+    fun `on test run with one batch and one test with crash event in the same process - saves crash event for the test`() {
+        val test = LogTest("com.app", "Test", "method")
+        val logcatMessage = createLogcatMessage(body = "Exception!")
+
+        collector.onLogcatEvent(BatchStarted(batchId = "abc", device = device))
+        collector.onLogcatEvent(TestStarted(test, processId = 123, device = device))
+        collector.onLogcatEvent(NativeCrashFatalSignal(message = "failure", processId = 123, device = device))
+        collector.onLogcatEvent(Message(logcatMessage = logcatMessage, device = device))
+        collector.onLogcatEvent(TestFinished(test, processId = 123, device = device))
+        collector.onLogcatEvent(BatchFinished(batchId = "abc", device = device))
+
+        val report = collector.getLogReport()
+        report.batches.size shouldEqualTo 1
+        report.batches["abc"] shouldNotBe null
+        report.batches.getValue("abc").tests[test] shouldNotBe null
+        report.batches.getValue("abc").tests.getValue(test).events.size shouldBe 1
+        report.batches.getValue("abc").tests.getValue(test).events.first() shouldEqual LogEvent.Crash(message = "failure")
+    }
+
+    @Test
+    fun `on test run with one batch and one test with crash event in different process - does not save crash event for the test`() {
+        val test = LogTest("com.app", "Test", "method")
+        val logcatMessage = createLogcatMessage(body = "Exception!")
+
+        collector.onLogcatEvent(BatchStarted(batchId = "abc", device = device))
+        collector.onLogcatEvent(TestStarted(test, processId = 123, device = device))
+        collector.onLogcatEvent(NativeCrashFatalSignal(message = "failure", processId = 9999, device = device))
+        collector.onLogcatEvent(Message(logcatMessage = logcatMessage, device = device))
+        collector.onLogcatEvent(TestFinished(test, processId = 123, device = device))
+        collector.onLogcatEvent(BatchFinished(batchId = "abc", device = device))
+
+        val report = collector.getLogReport()
+        report.batches.size shouldEqualTo 1
+        report.batches["abc"] shouldNotBe null
+        report.batches.getValue("abc").tests[test] shouldNotBe null
+        report.batches.getValue("abc").tests.getValue(test).events.size shouldBe 0
+    }
+
+    @Test
+    fun `on test run with one batch and without test events, native crash occurred - saves crash event for the batch`() {
+        val test = LogTest("com.app", "Test", "method")
+        val logcatMessage = createLogcatMessage(body = "Exception!")
+
+        collector.onLogcatEvent(BatchStarted(batchId = "abc", device = device))
+        collector.onLogcatEvent(TestStarted(test, processId = 123, device = device))
+        collector.onLogcatEvent(NativeCrashFatalSignal(message = "failure", processId = 123, device = device))
+        collector.onLogcatEvent(Message(logcatMessage = logcatMessage, device = device))
+        collector.onLogcatEvent(TestFinished(test, processId = 123, device = device))
+        collector.onLogcatEvent(BatchFinished(batchId = "abc", device = device))
+
+        val report = collector.getLogReport()
+        report.batches.size shouldEqualTo 1
+        report.batches["abc"] shouldNotBe null
+        report.batches.getValue("abc").tests[test] shouldNotBe null
+        report.batches.getValue("abc").tests.getValue(test).events.size shouldBe 1
+        report.batches.getValue("abc").tests.getValue(test).events.first() shouldEqual LogEvent.Crash(message = "failure")
     }
 
     @Test

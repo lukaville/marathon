@@ -17,5 +17,5 @@ class Log(
 )
 
 sealed class LogEvent {
-    class Crash(val message: String) : LogEvent()
+    data class Crash(val message: String) : LogEvent()
 }
