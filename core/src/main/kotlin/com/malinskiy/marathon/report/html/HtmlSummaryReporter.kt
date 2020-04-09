@@ -170,7 +170,7 @@ class HtmlSummaryReporter(
 
     fun TestResult.toHtmlFullTest(poolId: String, summary: TestSummary?): HtmlFullTest {
         val formattedSummary = testSummaryFormatter.formatTestResultSummary(this, summary)
-        val log = stacktrace.orEmpty() + "\n" + formattedSummary
+        val log = stacktrace.orEmpty() + "\n\n" + formattedSummary
 
         return HtmlFullTest(
             poolId = poolId,

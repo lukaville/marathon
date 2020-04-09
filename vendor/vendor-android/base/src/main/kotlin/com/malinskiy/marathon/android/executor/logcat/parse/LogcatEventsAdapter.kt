@@ -5,6 +5,7 @@ import com.malinskiy.marathon.android.executor.logcat.LogcatListener
 import com.malinskiy.marathon.android.executor.logcat.model.LogcatEvent.BatchFinished
 import com.malinskiy.marathon.android.executor.logcat.model.LogcatEvent.BatchStarted
 import com.malinskiy.marathon.android.executor.logcat.model.LogcatEvent.DeviceDisconnected
+import com.malinskiy.marathon.android.executor.logcat.model.LogcatEvent.FatalError
 import com.malinskiy.marathon.android.executor.logcat.model.LogcatEvent.Message
 import com.malinskiy.marathon.android.executor.logcat.model.LogcatEvent.TestFinished
 import com.malinskiy.marathon.android.executor.logcat.model.LogcatEvent.TestStarted
@@ -18,6 +19,8 @@ class LogcatEventsAdapter(private val parsedEventsListener: LogcatEventsListener
         message.parseTestStarted(device)?.let { parsedEventsListener.onLogcatEvent(it) }
 
         parsedEventsListener.onLogcatEvent(Message(message, device))
+        message.parseNativeCrash(device)?.let { parsedEventsListener.onLogcatEvent(it) }
+        message.parseJvmCrash(device)?.let { parsedEventsListener.onLogcatEvent(it) }
 
         message.parseTestFinished(device)?.let { parsedEventsListener.onLogcatEvent(it) }
         message.parseBatchFinished(device)?.let { parsedEventsListener.onLogcatEvent(it) }
@@ -26,6 +29,20 @@ class LogcatEventsAdapter(private val parsedEventsListener: LogcatEventsListener
     override fun onDeviceDisconnected(device: AndroidDevice) {
         parsedEventsListener.onLogcatEvent(DeviceDisconnected(device))
     }
+
+    private fun LogcatMessage.parseNativeCrash(device: AndroidDevice): FatalError? =
+        if (tag == NATIVE_CRASH_REPORT_TAG && body.startsWith(NATIVE_CRASH_REPORT_PREFIX)) {
+            FatalError(body, processId, device)
+        } else {
+            null
+        }
+
+    private fun LogcatMessage.parseJvmCrash(device: AndroidDevice): FatalError? =
+        if (tag == JVM_CRASH_REPORT_TAG && body.startsWith(JVM_CRASH_REPORT_PREFIX)) {
+            FatalError(body, processId, device)
+        } else {
+            null
+        }
 
     private fun String.parseTestName(): LogTest {
         val (methodName, packageAndClass) = this.removeSuffix(")").split("(")
@@ -75,6 +92,12 @@ class LogcatEventsAdapter(private val parsedEventsListener: LogcatEventsListener
     private companion object {
         private const val TEST_RUNNER_TAG = "TestRunner"
         private const val MARATHON_TAG = "marathon"
+
+        private const val NATIVE_CRASH_REPORT_TAG = "libc"
+        private const val NATIVE_CRASH_REPORT_PREFIX = "Fatal signal"
+
+        private const val JVM_CRASH_REPORT_TAG = "AndroidRuntime"
+        private const val JVM_CRASH_REPORT_PREFIX = "FATAL EXCEPTION"
 
         private const val TEST_STARTED_PREFIX = "started: "
         private const val TEST_FINISHED_PREFIX = "finished: "

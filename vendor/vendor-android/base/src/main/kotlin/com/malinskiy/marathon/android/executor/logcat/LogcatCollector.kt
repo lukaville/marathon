@@ -6,6 +6,7 @@ import com.malinskiy.marathon.android.executor.logcat.parse.LogcatEventsListener
 import com.malinskiy.marathon.device.Device
 import com.malinskiy.marathon.report.logs.LogTest
 import com.malinskiy.marathon.log.MarathonLogging
+import com.malinskiy.marathon.report.logs.LogEvent
 import com.malinskiy.marathon.report.logs.LogReport
 import com.malinskiy.marathon.report.logs.LogReportProvider
 
@@ -21,10 +22,24 @@ class LogcatCollector : LogcatEventsListener, LogReportProvider {
         when (event) {
             is LogcatEvent.Message -> {
                 val currentBatchId: String = devices[event.device]?.currentBatchId ?: return
-                val currentTest = devices[event.device]?.currentTest
+                val currentTest = devices[event.device]?.currentTest?.test
                 val batchCollector = batchCollectors.getOrPut(currentBatchId) { BatchLogSaver() }
                 val entry = SaveEntry.Message(event.logcatMessage)
                 batchCollector.save(entry, currentTest)
+            }
+            is LogcatEvent.FatalError -> {
+                val currentBatchId: String = devices[event.device]?.currentBatchId ?: return
+                val currentTestState = devices[event.device]?.currentTest
+                val batchCollector = batchCollectors.getOrPut(currentBatchId) { BatchLogSaver() }
+                val entryToSave = SaveEntry.Event(LogEvent.Crash(event.message))
+
+                if (currentTestState == null) {
+                    batchCollector.save(entryToSave, null)
+                } else {
+                    if (currentTestState.processId == event.processId) {
+                        batchCollector.save(entryToSave, currentTestState.test)
+                    }
+                }
             }
             is LogcatEvent.BatchStarted -> {
                 devices.compute(event.device) { _, oldState ->
@@ -48,7 +63,7 @@ class LogcatCollector : LogcatEventsListener, LogReportProvider {
                     return
                 }
 
-                devices[event.device] = oldState.copy(currentTest = event.test)
+                devices[event.device] = oldState.copy(currentTest = TestState(event.test, event.processId))
             }
             is LogcatEvent.TestFinished -> {
                 val oldState = devices[event.device]
@@ -57,7 +72,7 @@ class LogcatCollector : LogcatEventsListener, LogReportProvider {
                     return
                 }
 
-                if (oldState.currentTest != event.test) {
+                if (oldState.currentTest?.test != event.test) {
                     logger.error { "Incorrect state: test ${event.test} finished but current active test is ${oldState.currentTest}" }
                     return
                 }
@@ -79,6 +94,11 @@ class LogcatCollector : LogcatEventsListener, LogReportProvider {
 
     private data class DeviceState(
         val currentBatchId: String? = null,
-        val currentTest: LogTest? = null
+        val currentTest: TestState? = null
+    )
+
+    private data class TestState(
+        val test: LogTest,
+        val processId: Int
     )
 }

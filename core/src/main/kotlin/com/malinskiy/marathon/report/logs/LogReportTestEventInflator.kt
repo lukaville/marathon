@@ -6,28 +6,45 @@ import com.malinskiy.marathon.execution.Attachment
 import com.malinskiy.marathon.execution.AttachmentType
 import com.malinskiy.marathon.execution.TestResult
 import com.malinskiy.marathon.io.FileType
+import com.malinskiy.marathon.report.logs.LogEvent.Crash
 import com.malinskiy.marathon.test.Test
 
 class LogReportTestEventInflator(private val logReport: LogReport) : TestEventInflator {
 
     override fun inflate(event: TestEvent): TestEvent {
-        // TODO: add more info to "TestResult.stacktrace" based on crash events from LogReport
+        val log = getLog(event.testResult)
+        val additionalAttachments = listOfNotNull(
+            log?.let { Attachment(log.file, AttachmentType.LOG, FileType.LOG) }
+        )
 
-        val additionalAttachments = listOfNotNull(createLogAttachment(event.testResult))
+        val newStackTrace = updateStacktrace(event.testResult.stacktrace, log)
 
         val testResult = event.testResult.copy(
-            attachments = event.testResult.attachments + additionalAttachments
+            attachments = event.testResult.attachments + additionalAttachments,
+            stacktrace = newStackTrace
         )
 
         return event.copy(testResult = testResult)
     }
 
-    private fun createLogAttachment(testResult: TestResult): Attachment? {
+    private fun updateStacktrace(original: String?, log: Log?): String? {
+        if (log == null || log.events.isEmpty()) return original
+
+        val crashEventsDescription = log
+            .events
+            .filterIsInstance<Crash>()
+            .joinToString("\n") {
+                "* " + it.message
+            }
+
+        return "Crash events:\n${crashEventsDescription}\n\n" + original.orEmpty()
+    }
+
+    private fun getLog(testResult: TestResult): Log? {
         val batchId = testResult.batchId
         val logTest = testResult.test.toLogTest()
         val batchLogs = logReport.batches[batchId] ?: return null
-        val log = batchLogs.tests.getOrDefault(logTest, batchLogs.log)
-        return Attachment(log.file, AttachmentType.LOG, FileType.LOG)
+        return batchLogs.tests.getOrDefault(logTest, batchLogs.log)
     }
 
     private fun Test.toLogTest(): LogTest =

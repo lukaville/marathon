@@ -69,6 +69,58 @@ class LogcatEventsAdapterTest {
     }
 
     @Test
+    fun `on sigsegv crash logcat message - passes fatal error crash event and logcat message event`() {
+        val device = mock<AndroidDevice>()
+        val message = createLogcatMessage(
+            processId = 123,
+            tag = "libc",
+            body = "Fatal signal 11 (SIGSEGV), code 1 (SEGV_MAPERR), fault addr 0x0 in tid 14689 (Firebase-Fireba), pid 14554 (com.example.app)"
+        )
+
+        adapter.onMessage(device, message)
+
+        output shouldEqual listOf(
+            LogcatEvent.Message(
+                logcatMessage = message,
+                device = device
+            ),
+            LogcatEvent.FatalError(
+                message = "Fatal signal 11 (SIGSEGV), code 1 (SEGV_MAPERR), fault addr 0x0 in tid 14689 (Firebase-Fireba), pid 14554 (com.example.app)",
+                processId = 123,
+                device = device
+            )
+        )
+    }
+
+    @Test
+    fun `on android jvm crash logcat message - passes fatal error event and logcat message event`() {
+        val device = mock<AndroidDevice>()
+        val message = createLogcatMessage(
+            processId = 123,
+            tag = "AndroidRuntime",
+            body = """FATAL EXCEPTION: main
+	Process: com.example.app, PID: 15943
+	java.lang.IllegalStateException: TestException"""
+        )
+
+        adapter.onMessage(device, message)
+
+        output shouldEqual listOf(
+            LogcatEvent.Message(
+                logcatMessage = message,
+                device = device
+            ),
+            LogcatEvent.FatalError(
+                message = """FATAL EXCEPTION: main
+	Process: com.example.app, PID: 15943
+	java.lang.IllegalStateException: TestException""",
+                processId = 123,
+                device = device
+            )
+        )
+    }
+
+    @Test
     fun `on test finished logcat message - passes test finished event and logcat message event`() {
         val device = mock<AndroidDevice>()
         val message = createLogcatMessage(
