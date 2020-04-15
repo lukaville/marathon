@@ -60,15 +60,10 @@ dependencies {
     api(Libraries.koin)
     api(Libraries.bugsnag)
     testImplementation(project(":vendor:vendor-test"))
-    testImplementation(TestLibraries.kluent)
-    testImplementation(TestLibraries.spekAPI)
     testImplementation(TestLibraries.testContainers)
     testImplementation(TestLibraries.testContainersInflux)
     testImplementation(TestLibraries.ktorClientMock)
-    testImplementation(TestLibraries.mockitoKotlin)
     testImplementation(TestLibraries.koin)
-    testRuntime(TestLibraries.spekJUnitPlatformEngine)
-    testRuntime(TestLibraries.jupiterEngine)
 }
 
 tasks.named<JacocoReport>("jacocoTestReport").configure {
@@ -89,38 +84,10 @@ val integrationTest = task<Test>("integrationTest") {
     shouldRunAfter("test")
 }
 
-tasks.withType<Test>().all {
-    tasks.getByName("check").dependsOn(this)
-    useJUnitPlatform()
-}
-
 Deployment.initialize(project)
+Testing.configure(this)
 
 tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "1.8"
     kotlinOptions.apiVersion = "1.3"
-}
-
-junitPlatform {
-    filters {
-        engines {
-            include("spek")
-        }
-    }
-    enableStandardTestTask = true
-}
-
-// extension for configuration
-fun JUnitPlatformExtension.filters(setup: FiltersExtension.() -> Unit) {
-    when (this) {
-        is ExtensionAware -> extensions.getByType(FiltersExtension::class.java).setup()
-        else -> throw IllegalArgumentException("${this::class} must be an instance of ExtensionAware")
-    }
-}
-
-fun FiltersExtension.engines(setup: EnginesExtension.() -> Unit) {
-    when (this) {
-        is ExtensionAware -> extensions.getByType(EnginesExtension::class.java).setup()
-        else -> throw IllegalArgumentException("${this::class} must be an instance of ExtensionAware")
-    }
 }
