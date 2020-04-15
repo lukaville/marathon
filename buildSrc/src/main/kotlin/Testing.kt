@@ -14,7 +14,6 @@ object Testing {
 
         project.dependencies {
             add("testImplementation", TestLibraries.kluent)
-            add("testImplementation", TestLibraries.kluent)
             add("testImplementation", TestLibraries.mockitoKotlin)
             add("testImplementation", TestLibraries.spekAPI)
             add("testImplementation", TestLibraries.junit5)
