@@ -83,7 +83,6 @@ class TestSummaryFormatter {
                 testResult.createShortFailureDescription()
             )
             stringBuilder.append(" (${additionalInfo.joinToString()})")
-            stringBuilder.append("\u00a0\u00a0")
             stringBuilder.appendln()
         }
 

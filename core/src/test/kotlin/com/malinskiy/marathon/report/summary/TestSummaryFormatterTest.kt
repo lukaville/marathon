@@ -45,9 +45,9 @@ class TestSummaryFormatterTest {
               1) PASSED in batch #batch1 (3 tests in batch, device: serial-number)
             ================================================================================
             Tests in the batch (executed in the same process):
-              > Test.test1 (PASSED)  
-              * Test.test2 (PASSED)  
-              * Test.test3 (FAILURE)  
+              > Test.test1 (PASSED)
+              * Test.test2 (PASSED)
+              * Test.test3 (FAILURE)
             
             Copy JSON to run this batch locally:
             {"id":"batch1","component":":app","tests":[{"pkg":"com.test","clazz":"Test","method":"test1"},{"pkg":"com.test","clazz":"Test","method":"test2"},{"pkg":"com.test","clazz":"Test","method":"test3"}]}
@@ -57,9 +57,9 @@ class TestSummaryFormatterTest {
               2) FAILURE in batch #batch2 (3 tests in batch, device: serial-number)
             ================================================================================
             Tests in the batch (executed in the same process):
-              > Test.test1 (FAILURE)  
-              * Test.test2 (PASSED)  
-              * Test.test3 (FAILURE)  
+              > Test.test1 (FAILURE)
+              * Test.test2 (PASSED)
+              * Test.test3 (FAILURE)
             
             Copy JSON to run this batch locally:
             {"id":"batch2","component":":app","tests":[{"pkg":"com.test","clazz":"Test","method":"test1"},{"pkg":"com.test","clazz":"Test","method":"test2"},{"pkg":"com.test","clazz":"Test","method":"test3"}]}
