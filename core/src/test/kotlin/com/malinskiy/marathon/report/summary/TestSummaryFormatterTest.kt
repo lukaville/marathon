@@ -37,26 +37,32 @@ class TestSummaryFormatterTest {
             From cache: false
             
             There were 2 runs:
-              > PASSED (serial-number, batch: batch1)
-              * FAILURE (serial-number, batch: batch2)
+              1) PASSED (serial-number, batch: batch1) - current
+              2) FAILURE (serial-number, batch: batch2)
             
-            Test batches:
-              > PASSED #batch1 (3 tests, serial-number):
-                > Test.test1 (PASSED)
-                * Test.test2 (PASSED)
-                * Test.test3 (FAILURE)
+            Test runs details:
+            ================================================================================
+              1) PASSED in batch #batch1 (3 tests in batch, device: serial-number)
+            ================================================================================
+            Tests in the batch (executed in the same process):
+              > Test.test1 (PASSED)  
+              * Test.test2 (PASSED)  
+              * Test.test3 (FAILURE)  
             
-                Copy this JSON to run it locally:
-                {"id":"batch1","component":":app","tests":[{"pkg":"com.test","clazz":"Test","method":"test1"},{"pkg":"com.test","clazz":"Test","method":"test2"},{"pkg":"com.test","clazz":"Test","method":"test3"}]}
+            Copy JSON to run this batch locally:
+            {"id":"batch1","component":":app","tests":[{"pkg":"com.test","clazz":"Test","method":"test1"},{"pkg":"com.test","clazz":"Test","method":"test2"},{"pkg":"com.test","clazz":"Test","method":"test3"}]}
             
             
-              * FAILURE #batch2 (3 tests, serial-number):
-                > Test.test1 (FAILURE)
-                * Test.test2 (PASSED)
-                * Test.test3 (FAILURE)
+            ================================================================================
+              2) FAILURE in batch #batch2 (3 tests in batch, device: serial-number)
+            ================================================================================
+            Tests in the batch (executed in the same process):
+              > Test.test1 (FAILURE)  
+              * Test.test2 (PASSED)  
+              * Test.test3 (FAILURE)  
             
-                Copy this JSON to run it locally:
-                {"id":"batch2","component":":app","tests":[{"pkg":"com.test","clazz":"Test","method":"test1"},{"pkg":"com.test","clazz":"Test","method":"test2"},{"pkg":"com.test","clazz":"Test","method":"test3"}]}
+            Copy JSON to run this batch locally:
+            {"id":"batch2","component":":app","tests":[{"pkg":"com.test","clazz":"Test","method":"test1"},{"pkg":"com.test","clazz":"Test","method":"test2"},{"pkg":"com.test","clazz":"Test","method":"test3"}]}
             
             
             
