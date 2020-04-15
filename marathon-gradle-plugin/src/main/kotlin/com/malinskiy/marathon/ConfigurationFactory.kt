@@ -26,13 +26,14 @@ internal fun createCommonConfiguration(
 
     val output = getOutputDirectory(targetProject, extensionConfig, null)
     val fakeApk = File(".")
+    val fakeName = "marathon-common"
 
     return createConfiguration(
         extensionConfig = extensionConfig,
         applicationApk = null,
         instrumentationApk = fakeApk,
         sdkDirectory = sdkDirectory,
-        name = extensionConfig.name,
+        name = fakeName,
         output = output
     )
 }
@@ -43,8 +44,7 @@ internal fun createComponentInfo(
     applicationVariant: BaseVariant,
     testVariant: TestVariant
 ): AndroidComponentInfo {
-    val name = project.path + ":" + flavorName
-
+    val name = createComponentName(project, flavorName)
     val instrumentationApk = testVariant.extractTestApplication()
     val applicationApk = applicationVariant.extractApplication()
 
@@ -68,10 +68,13 @@ internal fun createConfiguration(
         applicationApk = applicationApk,
         instrumentationApk = instrumentationApk,
         sdkDirectory = sdkDirectory,
-        name = extensionConfig.name,
+        name = createComponentName(project, flavorName),
         output = getOutputDirectory(project, extensionConfig, flavorName)
     )
 }
+
+private fun createComponentName(project: Project, flavorName: String): String =
+    project.path + ":" + flavorName
 
 private fun createConfiguration(
     extensionConfig: MarathonExtension,
