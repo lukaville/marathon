@@ -20,6 +20,7 @@ class LogcatEventsAdapter(private val parsedEventsListener: LogcatEventsListener
 
         parsedEventsListener.onLogcatEvent(Message(message, device))
         message.parseNativeCrash(device)?.let { parsedEventsListener.onLogcatEvent(it) }
+        message.parseZygoteExitReason(device)?.let { parsedEventsListener.onLogcatEvent(it) }
         message.parseJvmCrash(device)?.let { parsedEventsListener.onLogcatEvent(it) }
 
         message.parseTestFinished(device)?.let { parsedEventsListener.onLogcatEvent(it) }
@@ -36,6 +37,18 @@ class LogcatEventsAdapter(private val parsedEventsListener: LogcatEventsListener
         } else {
             null
         }
+
+    private fun LogcatMessage.parseZygoteExitReason(device: AndroidDevice): FatalError? {
+        if (tag == ZYGOTE_TAG) {
+            val match = ZYGOTE_PROCESS_EXITED_REGEXP.find(body)
+            val processId = match?.groups?.get(1)?.value?.toIntOrNull()
+            if (processId != null) {
+                return FatalError(body, processId, device)
+            }
+        }
+
+        return null
+    }
 
     private fun LogcatMessage.parseJvmCrash(device: AndroidDevice): FatalError? =
         if (tag == JVM_CRASH_REPORT_TAG && body.startsWith(JVM_CRASH_REPORT_PREFIX)) {
@@ -95,6 +108,9 @@ class LogcatEventsAdapter(private val parsedEventsListener: LogcatEventsListener
 
         private const val NATIVE_CRASH_REPORT_TAG = "libc"
         private const val NATIVE_CRASH_REPORT_PREFIX = "Fatal signal"
+
+        private const val ZYGOTE_TAG = "Zygote"
+        private val ZYGOTE_PROCESS_EXITED_REGEXP = "Process ([0-9]+) exited due to signal.*".toRegex()
 
         private const val JVM_CRASH_REPORT_TAG = "AndroidRuntime"
         private const val JVM_CRASH_REPORT_PREFIX = "FATAL EXCEPTION"
