@@ -48,6 +48,7 @@ open class MarathonExtension(project: Project) {
     //Android specific for now
     var autoGrantPermission: Boolean? = null
     var instrumentationArgs: MutableMap<String, String> = mutableMapOf()
+    var pullScreenshotFilterConfiguration: FilteringPluginConfiguration? = null
 
     //Kotlin way
     fun cache(block: CachePluginConfiguration.() -> Unit) {
@@ -92,6 +93,10 @@ open class MarathonExtension(project: Project) {
 
     fun instrumentationArgs(block: MutableMap<String, String>.() -> Unit) {
         instrumentationArgs = mutableMapOf<String, String>().also(block)
+    }
+
+    fun pullScreenshotFilterConfiguration(block: FilteringPluginConfiguration.() -> Unit) {
+        pullScreenshotFilterConfiguration = FilteringPluginConfiguration().also(block)
     }
 
     //Groovy way
@@ -146,6 +151,12 @@ open class MarathonExtension(project: Project) {
     fun filteringConfiguration(closure: Closure<*>) {
         filteringConfiguration = FilteringPluginConfiguration()
         closure.delegate = filteringConfiguration
+        closure.call()
+    }
+
+    fun pullScreenshotFilterConfiguration(closure: Closure<*>) {
+        pullScreenshotFilterConfiguration = FilteringPluginConfiguration()
+        closure.delegate = pullScreenshotFilterConfiguration
         closure.call()
     }
 

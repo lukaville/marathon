@@ -211,5 +211,6 @@ private fun createConfiguration(codeCoverageEnabled: Boolean = false) = Configur
         StubComponentInfoExtractor(),
         StubComponentCacheKeyProvider()
     ),
-    analyticsTracking = false
+    analyticsTracking = false,
+    pullScreenshotFilterConfiguration = null
 )

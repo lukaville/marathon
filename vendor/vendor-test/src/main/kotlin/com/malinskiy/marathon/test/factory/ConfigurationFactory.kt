@@ -1,10 +1,18 @@
 package com.malinskiy.marathon.test.factory
 
+import com.malinskiy.marathon.analytics.internal.pub.Tracker
 import com.malinskiy.marathon.device.DeviceProvider
+import com.malinskiy.marathon.execution.AnalyticsConfiguration
 import com.malinskiy.marathon.execution.CacheConfiguration
 import com.malinskiy.marathon.execution.Configuration
+import com.malinskiy.marathon.execution.FilteringConfiguration
+import com.malinskiy.marathon.execution.StrictRunFilterConfiguration
+import com.malinskiy.marathon.execution.strategy.BatchingStrategy
 import com.malinskiy.marathon.execution.strategy.FlakinessStrategy
+import com.malinskiy.marathon.execution.strategy.PoolingStrategy
+import com.malinskiy.marathon.execution.strategy.RetryStrategy
 import com.malinskiy.marathon.execution.strategy.ShardingStrategy
+import com.malinskiy.marathon.execution.strategy.SortingStrategy
 import com.malinskiy.marathon.test.Mocks
 import com.malinskiy.marathon.test.StubComponentCacheKeyProvider
 import com.malinskiy.marathon.test.StubComponentInfoExtractor
@@ -12,10 +20,6 @@ import com.malinskiy.marathon.test.StubDeviceProvider
 import com.malinskiy.marathon.test.Test
 import com.malinskiy.marathon.test.TestVendorConfiguration
 import kotlinx.coroutines.channels.Channel
-import org.amshove.kluent.When
-import org.amshove.kluent.`it returns`
-import org.amshove.kluent.any
-import org.amshove.kluent.calling
 import java.nio.file.Files
 
 class ConfigurationFactory {
@@ -27,29 +31,30 @@ class ConfigurationFactory {
         StubComponentInfoExtractor(),
         StubComponentCacheKeyProvider()
     )
-    var debug = null
-    var batchingStrategy = null
-    var customAnalyticsTracker = null
-    var analyticsConfiguration = null
+    var debug: Boolean? = null
+    var batchingStrategy: BatchingStrategy? = null
+    var customAnalyticsTracker: Tracker? = null
+    var analyticsConfiguration: AnalyticsConfiguration? = null
     var excludeSerialRegexes: List<Regex>? = null
-    var fallbackToScreenshots = null
-    var strictMode = null
+    var fallbackToScreenshots: Boolean? = null
+    var strictMode: Boolean? = null
     var uncompletedTestRetryQuota: Int? = null
-    var filteringConfiguration = null
-    var strictRunFilterConfiguration = null
+    var filteringConfiguration: FilteringConfiguration? = null
+    var pullScreenshotFilterConfiguration: FilteringConfiguration? = null
+    var strictRunFilterConfiguration: StrictRunFilterConfiguration? = null
     var flakinessStrategy: FlakinessStrategy? = null
     var cache: CacheConfiguration? = null
-    var ignoreFailures = null
+    var ignoreFailures: Boolean? = null
     var includeSerialRegexes: List<Regex>? = null
-    var isCodeCoverageEnabled = null
-    var poolingStrategy = null
-    var retryStrategy = null
+    var isCodeCoverageEnabled: Boolean? = null
+    var poolingStrategy: PoolingStrategy? = null
+    var retryStrategy: RetryStrategy? = null
     var shardingStrategy: ShardingStrategy? = null
-    var sortingStrategy = null
-    var testClassRegexes = null
-    var testBatchTimeoutMillis = null
-    var testOutputTimeoutMillis = null
-    var analyticsTracking = false
+    var sortingStrategy: SortingStrategy? = null
+    var testClassRegexes: Collection<Regex>? = null
+    var testBatchTimeoutMillis: Long? = null
+    var testOutputTimeoutMillis: Long? = null
+    var analyticsTracking: Boolean = false
 
     fun tests(block: () -> List<Test>) {
         val testParser = vendorConfiguration.testParser()
@@ -63,31 +68,32 @@ class ConfigurationFactory {
 
     fun build(): Configuration =
         Configuration(
-            name,
-            outputDir,
-            analyticsConfiguration,
-            customAnalyticsTracker,
-            poolingStrategy,
-            shardingStrategy,
-            sortingStrategy,
-            batchingStrategy,
-            flakinessStrategy,
-            retryStrategy,
-            filteringConfiguration,
-            strictRunFilterConfiguration,
-            cache,
-            ignoreFailures,
-            isCodeCoverageEnabled,
-            fallbackToScreenshots,
-            strictMode,
-            uncompletedTestRetryQuota,
-            testClassRegexes,
-            includeSerialRegexes,
-            excludeSerialRegexes,
-            testBatchTimeoutMillis,
-            testOutputTimeoutMillis,
-            debug,
-            vendorConfiguration,
-            analyticsTracking
+            name = name,
+            outputDir = outputDir,
+            analyticsConfiguration = analyticsConfiguration,
+            customAnalyticsTracker = customAnalyticsTracker,
+            poolingStrategy = poolingStrategy,
+            shardingStrategy = shardingStrategy,
+            sortingStrategy = sortingStrategy,
+            batchingStrategy = batchingStrategy,
+            flakinessStrategy = flakinessStrategy,
+            retryStrategy = retryStrategy,
+            filteringConfiguration = filteringConfiguration,
+            pullScreenshotFilterConfiguration = pullScreenshotFilterConfiguration,
+            strictRunFilterConfiguration = strictRunFilterConfiguration,
+            cache = cache,
+            ignoreFailures = ignoreFailures,
+            isCodeCoverageEnabled = isCodeCoverageEnabled,
+            fallbackToScreenshots = fallbackToScreenshots,
+            strictMode = strictMode,
+            uncompletedTestRetryQuota = uncompletedTestRetryQuota,
+            testClassRegexes = testClassRegexes,
+            includeSerialRegexes = includeSerialRegexes,
+            excludeSerialRegexes = excludeSerialRegexes,
+            testBatchTimeoutMillis = testBatchTimeoutMillis,
+            testOutputTimeoutMillis = testOutputTimeoutMillis,
+            debug = debug,
+            vendorConfiguration = vendorConfiguration,
+            analyticsTracking = analyticsTracking
         )
 }

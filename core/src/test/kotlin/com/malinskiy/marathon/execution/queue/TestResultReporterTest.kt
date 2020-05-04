@@ -66,7 +66,8 @@ object TestResultReporterSpec : Spek(
                 StubComponentInfoExtractor(),
                 StubComponentCacheKeyProvider()
             ),
-            analyticsTracking = false
+            analyticsTracking = false,
+            pullScreenshotFilterConfiguration = null
         )
         val strictConfig = defaultConfig.copy(strictMode = true)
         val analytics = mock(Analytics::class)

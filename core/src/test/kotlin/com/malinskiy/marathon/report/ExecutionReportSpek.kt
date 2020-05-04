@@ -67,7 +67,8 @@ class ExecutionReportSpek : Spek(
                 override fun componentInfoExtractor(): ComponentInfoExtractor? = null
                 override fun componentCacheKeyProvider(): ComponentCacheKeyProvider? = null
             },
-            analyticsTracking = false
+            analyticsTracking = false,
+            pullScreenshotFilterConfiguration = null
         )
 
         val fileManager = FileManager(configuration.outputDir)

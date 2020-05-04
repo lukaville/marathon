@@ -270,5 +270,6 @@ private val DEFAULT_CONFIGURATION = Configuration(
         componentInfoExtractor = mock(),
         componentCacheKeyProvider = mock()
     ),
-    analyticsTracking = false
+    analyticsTracking = false,
+    pullScreenshotFilterConfiguration = null
 )

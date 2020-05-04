@@ -27,4 +27,6 @@ interface AndroidDevice : Device {
         remoteFilePath: String,
         options: ScreenRecorderOptions
     )
+
+    fun waitForAsyncWork()
 }
