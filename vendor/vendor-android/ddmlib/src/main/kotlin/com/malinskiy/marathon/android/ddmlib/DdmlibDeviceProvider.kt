@@ -223,6 +223,9 @@ class DdmlibDeviceProvider(
     private fun AndroidDebugBridge.hasDevices(): Boolean = devices.isNotEmpty()
 
     override suspend fun terminate() {
+        devices.values.forEach {
+            it.waitForAsyncWork()
+        }
         if (::listener.isInitialized) {
             AndroidDebugBridge.removeDeviceChangeListener(listener)
         }

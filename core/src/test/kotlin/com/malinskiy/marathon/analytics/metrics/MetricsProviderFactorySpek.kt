@@ -55,7 +55,8 @@ class MetricsProviderFactorySpek : Spek(
                         override fun componentInfoExtractor(): ComponentInfoExtractor? = null
                         override fun componentCacheKeyProvider(): ComponentCacheKeyProvider? = null
                     },
-                    analyticsTracking = false
+                    analyticsTracking = false,
+                    pullScreenshotFilterConfiguration = null
                 )
                 val factory = MetricsProviderFactory(configuration)
                 val metricsProvider = factory.create()
@@ -103,7 +104,8 @@ class MetricsProviderFactorySpek : Spek(
                         override fun componentInfoExtractor(): ComponentInfoExtractor? = null
                         override fun componentCacheKeyProvider(): ComponentCacheKeyProvider? = null
                     },
-                    analyticsTracking = false
+                    analyticsTracking = false,
+                    pullScreenshotFilterConfiguration = null
                 )
                 val factory = MetricsProviderFactory(configuration)
                 val metricsProvider = factory.create()
@@ -151,7 +153,8 @@ class MetricsProviderFactorySpek : Spek(
                         override fun componentInfoExtractor(): ComponentInfoExtractor? = null
                         override fun componentCacheKeyProvider(): ComponentCacheKeyProvider? = null
                     },
-                    analyticsTracking = false
+                    analyticsTracking = false,
+                    pullScreenshotFilterConfiguration = null
                 )
                 val factory = MetricsProviderFactory(configuration)
                 val metricsProvider = factory.create()

@@ -29,6 +29,7 @@ import com.malinskiy.marathon.android.executor.listeners.NoOpTestRunListener
 import com.malinskiy.marathon.android.executor.listeners.ProgressTestRunListener
 import com.malinskiy.marathon.android.executor.listeners.TestRunListener
 import com.malinskiy.marathon.android.executor.listeners.TestRunResultsListener
+import com.malinskiy.marathon.android.executor.listeners.pull.PullScreenshotTestRunListener
 import com.malinskiy.marathon.android.executor.listeners.screenshot.ScreenCapturerTestRunListener
 import com.malinskiy.marathon.android.executor.listeners.video.ScreenRecorderHandler
 import com.malinskiy.marathon.android.executor.listeners.video.ScreenRecorderOptions
@@ -53,8 +54,10 @@ import com.malinskiy.marathon.test.TestBatch
 import com.malinskiy.marathon.time.Timer
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.newFixedThreadPoolContext
+import kotlinx.coroutines.runBlocking
 import java.awt.image.BufferedImage
 import java.io.IOException
 import java.util.*
@@ -77,6 +80,7 @@ class DdmlibAndroidDevice(
 
     override val version: AndroidVersion by lazy { ddmsDevice.version }
     private val nullOutputReceiver = NullOutputReceiver()
+    private val parentJob: Job = Job()
 
     private var logcatReceiver: CliLogcatReceiver? = null
     private val logMessagesListener: (List<LogCatMessage>) -> Unit = {
@@ -140,6 +144,14 @@ class DdmlibAndroidDevice(
             recorderOptions,
             receiver
         )
+    }
+
+    override fun waitForAsyncWork() {
+        runBlocking(context = coroutineContext) {
+            parentJob.children.forEach {
+                it.join()
+            }
+        }
     }
 
     private fun bufferedImageFrom(rawImage: RawImage): BufferedImage {
@@ -301,11 +313,18 @@ class DdmlibAndroidDevice(
             prepareRecorderListener(feature, fileManager, devicePoolId, attachmentProviders)
         } ?: NoOpTestRunListener()
 
+        val pullScreenshotListener = if (configuration.isPullScreenshotEnabled()) {
+            createPullScreenshotTestRunListener(devicePoolId, configuration, testBatch)
+        } else {
+            NoOpTestRunListener()
+        }
+
         return CompositeTestRunListener(
             listOf(
                 recorderListener,
                 TestRunResultsListener(testBatch, this, deferred, timer, strictRunChecker, attachmentProviders),
                 DebugTestRunListener(this),
+                pullScreenshotListener,
                 ProgressTestRunListener(this, devicePoolId, progressReporter)
             )
         )
@@ -336,6 +355,23 @@ class DdmlibAndroidDevice(
         features.contains(DeviceFeature.SCREENSHOT) -> DeviceFeature.SCREENSHOT
         else -> null
     }
+
+    private fun Configuration.isPullScreenshotEnabled(): Boolean =
+        pullScreenshotFilterConfiguration.whitelist.isNotEmpty()
+
+    private fun createPullScreenshotTestRunListener(
+        devicePoolId: DevicePoolId,
+        configuration: Configuration,
+        testBatch: TestBatch
+    ): PullScreenshotTestRunListener =
+        PullScreenshotTestRunListener(
+            device = this,
+            devicePoolId = devicePoolId,
+            outputDir = configuration.outputDir,
+            pullScreenshotFilterConfiguration = configuration.pullScreenshotFilterConfiguration,
+            testBatch = testBatch,
+            parentJob = parentJob
+        )
 
     override fun safeUninstallPackage(appPackage: String): String? {
         return try {

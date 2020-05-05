@@ -32,6 +32,7 @@ data class Configuration constructor(
     val flakinessStrategy: FlakinessStrategy,
     val retryStrategy: RetryStrategy,
     val filteringConfiguration: FilteringConfiguration,
+    val pullScreenshotFilterConfiguration: FilteringConfiguration,
     val strictRunFilterConfiguration: StrictRunFilterConfiguration,
 
     val cache: CacheConfiguration,
@@ -67,6 +68,7 @@ data class Configuration constructor(
         flakinessStrategy: FlakinessStrategy?,
         retryStrategy: RetryStrategy?,
         filteringConfiguration: FilteringConfiguration?,
+        pullScreenshotFilterConfiguration: FilteringConfiguration?,
         strictRunFilterConfiguration: StrictRunFilterConfiguration?,
 
         cache: CacheConfiguration?,
@@ -115,7 +117,8 @@ data class Configuration constructor(
                 testOutputTimeoutMillis = testOutputTimeoutMillis ?: DEFAULT_OUTPUT_TIMEOUT_MILLIS,
                 debug = debug ?: true,
                 vendorConfiguration = vendorConfiguration,
-                analyticsTracking = analyticsTracking ?: false
+                analyticsTracking = analyticsTracking ?: false,
+                pullScreenshotFilterConfiguration = pullScreenshotFilterConfiguration ?: FilteringConfiguration(emptyList(), emptyList())
             )
 
     fun toMap() =
@@ -142,6 +145,8 @@ data class Configuration constructor(
             "testBatchTimeoutMillis" to testBatchTimeoutMillis.toString(),
             "testOutputTimeoutMillis" to testOutputTimeoutMillis.toString(),
             "debug" to debug.toString(),
-            "vendorConfiguration" to vendorConfiguration.toString()
+            "vendorConfiguration" to vendorConfiguration.toString(),
+            "analyticsTracking" to analyticsTracking.toString(),
+            "pullScreenshotFilterConfiguration" to pullScreenshotFilterConfiguration.toString()
         )
 }
