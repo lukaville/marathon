@@ -64,17 +64,20 @@ class TestCacheLoader(
 
     suspend fun addTests(poolId: DevicePoolId, tests: TestShard) {
         if (configuration.cache.isEnabled) {
-            val strictModeTests: MutableList<Test> = arrayListOf()
-            tests.tests.forEach {
-                if (configuration.strictRunFilterConfiguration.filter.matches(it)) {
-                    strictModeTests.add(it)
+            val testCacheBlackList: MutableList<Test> = arrayListOf()
+            tests.tests.forEach { test ->
+                val isStrictRunTest = configuration.strictRunFilterConfiguration.filter.matches(test)
+                val isPullScreenshotTest = configuration.pullScreenshotFilterConfiguration.whitelist.any { it.matches(test) }
+                if (isStrictRunTest || isPullScreenshotTest) {
+                    testCacheBlackList.add(test)
                 } else {
-                    testsToCheck.send(TestToCheck(poolId, it, isStrictRun = false))
+                    testsToCheck.send(TestToCheck(poolId, test, isStrictRun = false))
                 }
             }
 
-            if (strictModeTests.isNotEmpty()) {
-                _results.send(Miss(poolId, TestShard(strictModeTests)))
+            if (testCacheBlackList.isNotEmpty()) {
+                logger.debug { "Cache miss for test in blacklist: ${testCacheBlackList.map { it.toSimpleSafeTestName() }} " }
+                _results.send(Miss(poolId, TestShard(testCacheBlackList)))
             }
         } else {
             _results.send(Miss(poolId, tests))
