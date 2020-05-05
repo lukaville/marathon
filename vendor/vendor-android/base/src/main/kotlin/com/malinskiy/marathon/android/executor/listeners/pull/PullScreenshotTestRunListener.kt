@@ -1,4 +1,4 @@
-package com.malinskiy.marathon.android.executor.listeners.vrt
+package com.malinskiy.marathon.android.executor.listeners.pull
 
 import com.malinskiy.marathon.android.AndroidDevice
 import com.malinskiy.marathon.android.executor.listeners.TestRunListener

@@ -29,11 +29,11 @@ import com.malinskiy.marathon.android.executor.listeners.NoOpTestRunListener
 import com.malinskiy.marathon.android.executor.listeners.ProgressTestRunListener
 import com.malinskiy.marathon.android.executor.listeners.TestRunListener
 import com.malinskiy.marathon.android.executor.listeners.TestRunResultsListener
+import com.malinskiy.marathon.android.executor.listeners.pull.PullScreenshotTestRunListener
 import com.malinskiy.marathon.android.executor.listeners.screenshot.ScreenCapturerTestRunListener
 import com.malinskiy.marathon.android.executor.listeners.video.ScreenRecorderHandler
 import com.malinskiy.marathon.android.executor.listeners.video.ScreenRecorderOptions
 import com.malinskiy.marathon.android.executor.listeners.video.ScreenRecorderTestRunListener
-import com.malinskiy.marathon.android.executor.listeners.vrt.PullScreenshotTestRunListener
 import com.malinskiy.marathon.android.executor.logcat.LogcatListener
 import com.malinskiy.marathon.android.serial.SerialStrategy
 import com.malinskiy.marathon.device.Device
@@ -313,7 +313,7 @@ class DdmlibAndroidDevice(
             prepareRecorderListener(feature, fileManager, devicePoolId, attachmentProviders)
         } ?: NoOpTestRunListener()
 
-        val vrtListener = if (configuration.isPullScreenshotEnabled()) {
+        val pullScreenshotListener = if (configuration.isPullScreenshotEnabled()) {
             createPullScreenshotTestRunListener(devicePoolId, configuration, testBatch)
         } else {
             NoOpTestRunListener()
@@ -324,7 +324,7 @@ class DdmlibAndroidDevice(
                 recorderListener,
                 TestRunResultsListener(testBatch, this, deferred, timer, strictRunChecker, attachmentProviders),
                 DebugTestRunListener(this),
-                vrtListener,
+                pullScreenshotListener,
                 ProgressTestRunListener(this, devicePoolId, progressReporter)
             )
         )
