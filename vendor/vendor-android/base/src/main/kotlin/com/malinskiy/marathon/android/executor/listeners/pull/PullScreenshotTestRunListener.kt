@@ -9,7 +9,6 @@ import com.malinskiy.marathon.execution.matches
 import com.malinskiy.marathon.log.MarathonLogging
 import com.malinskiy.marathon.test.Test
 import com.malinskiy.marathon.test.TestBatch
-import com.malinskiy.marathon.test.toSafeTestName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
@@ -39,36 +38,23 @@ class PullScreenshotTestRunListener(
     override val coroutineContext: CoroutineContext
         get() = threadPoolDispatcher
     private var screenshotDeferred: Deferred<Unit>? = null
-    private var shouldRunPullScreenshot: Boolean = false
-
-    override fun testEnded(test: Test, testMetrics: Map<String, String>) {
-        super.testEnded(test, testMetrics)
-
-        if (!shouldRunPullScreenshot) {
-            val testFromBatch: Test? = testBatch.tests.firstOrNull { it.toSafeTestName() == test.toSafeTestName() }
-
-            // The test is missing from the batch, ignore it (eg: parameterized test)
-            if (testFromBatch != null) {
-                // We pull the screenshots when the batch is finished, we store if need to after each test
-                shouldRunPullScreenshot = pullScreenshotFilterConfiguration.whitelist.any {
-                    it.matches(testFromBatch)
-                }
-            }
-        }
-    }
 
     override fun testRunEnded(elapsedTime: Long, runMetrics: Map<String, String>) {
         super.testRunEnded(elapsedTime, runMetrics)
 
         screenshotDeferred?.cancel()
-        if (shouldRunPullScreenshot) {
+        if (shouldRunPullScreenshot()) {
             screenshotDeferred = async(parentJob) {
                 pullScreenshots()
             }
         }
-        shouldRunPullScreenshot = false
     }
 
+    private fun shouldRunPullScreenshot(): Boolean =
+        testBatch.tests.any { testFromBatch -> testFromBatch.matchWhitelist() }
+
+    private fun Test.matchWhitelist() =
+        pullScreenshotFilterConfiguration.whitelist.any { it.matches(this) }
 
     private fun pullScreenshots() {
         val deviceInfo = device.toDeviceInfo()
