@@ -54,7 +54,7 @@ class PullScreenshotTestRunListener(
         testBatch.tests.any { testFromBatch -> testFromBatch.matchWhitelist() }
 
     private fun Test.matchWhitelist() =
-        pullScreenshotFilterConfiguration.whitelist.any { it.matches(this) }
+        pullScreenshotFilterConfiguration.whitelist.any { filter -> filter.matches(this) }
 
     private fun pullScreenshots() {
         val deviceInfo = device.toDeviceInfo()
