@@ -45,10 +45,14 @@ class PullScreenshotTestRunListener(
         super.testEnded(test, testMetrics)
 
         if (!shouldRunPullScreenshot) {
-            val testFromBatch = testBatch.tests.first { it.toSafeTestName() == test.toSafeTestName() }
-            // We pull the screenshots when the batch is finished, we store if need to after each test
-            shouldRunPullScreenshot = pullScreenshotFilterConfiguration.whitelist.any {
-                it.matches(testFromBatch)
+            val testFromBatch: Test? = testBatch.tests.firstOrNull { it.toSafeTestName() == test.toSafeTestName() }
+
+            // The test is missing from the batch, ignore it (eg: parameterized test)
+            if (testFromBatch != null) {
+                // We pull the screenshots when the batch is finished, we store if need to after each test
+                shouldRunPullScreenshot = pullScreenshotFilterConfiguration.whitelist.any {
+                    it.matches(testFromBatch)
+                }
             }
         }
     }
