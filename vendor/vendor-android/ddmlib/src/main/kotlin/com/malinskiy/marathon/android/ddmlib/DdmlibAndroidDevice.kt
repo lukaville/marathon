@@ -280,7 +280,7 @@ class DdmlibAndroidDevice(
             throw DeviceLostException(exception)
         }
 
-        safeExecuteShellCommand("log -t $SERVICE_LOGS_TAG \"batch_started: {${testBatch.id}}\"")
+        safePrintToLogcat(SERVICE_LOGS_TAG, "\"batch_started: {${testBatch.id}}\"")
 
         val deferredResult = async {
             val listeners = createListeners(configuration, devicePoolId, testBatch, deferred, progressReporter)
@@ -289,7 +289,16 @@ class DdmlibAndroidDevice(
         }
         deferredResult.await()
 
-        safeExecuteShellCommand("log -t $SERVICE_LOGS_TAG \"batch_finished: {${testBatch.id}}\"")
+        safePrintToLogcat(SERVICE_LOGS_TAG, "\"batch_finished: {${testBatch.id}}\"")
+    }
+
+    private fun safePrintToLogcat(tag: String, message: String) {
+        try {
+            safeExecuteShellCommand("log -t $tag $message")
+        } catch (exception: Throwable) {
+            logger.error { "Error during printing logcat message $tag:$message to device $serialNumber" }
+            exception.printStackTrace()
+        }
     }
 
     private suspend fun ensureInstalled(componentInfo: AndroidComponentInfo) {
