@@ -59,7 +59,7 @@ val coreModule = module {
     single<Timer> { SystemTimer(get()) }
     single<ProgressReporter> { ProgressReporter() }
     single<StrictRunChecker> { ConfigurationStrictRunChecker(get()) }
-    single<Marathon> { Marathon(get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
+    single<Marathon> { Marathon(get(), get(), get(), get(), get(), get(), get(), get(), get(), get(), get()) }
 }
 
 fun KoinApplication.marathonConfiguration(configuration: Configuration): KoinApplication {

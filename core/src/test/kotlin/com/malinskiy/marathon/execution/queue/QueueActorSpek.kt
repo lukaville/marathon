@@ -14,6 +14,7 @@ import com.malinskiy.marathon.execution.TestResult
 import com.malinskiy.marathon.execution.TestShard
 import com.malinskiy.marathon.execution.TestStatus
 import com.malinskiy.marathon.execution.strategy.impl.batching.FixedSizeBatchingStrategy
+import com.malinskiy.marathon.report.logs.LogsProvider
 import com.malinskiy.marathon.test.Test
 import com.malinskiy.marathon.test.TestComponentInfo
 import com.malinskiy.marathon.test.TestVendorConfiguration
@@ -186,6 +187,7 @@ class QueueActorSpek : Spek(
         }
     })
 
+private val TEST_BATCH_ID = "test-batch-id"
 private val TEST_DEVICE = DeviceStub()
 private val TEST_DEVICE_INFO = TEST_DEVICE.toDeviceInfo()
 
@@ -196,6 +198,7 @@ private fun createBatchResult(
     failed: List<TestResult> = emptyList(),
     uncompleted: List<TestResult> = emptyList()
 ): TestBatchResults = TestBatchResults(
+    TEST_BATCH_ID,
     TEST_DEVICE,
     TestComponentInfo(),
     finished,
@@ -228,6 +231,7 @@ private fun createQueueActor(
     DevicePoolId("test"),
     mock(),
     track,
+    mock(),
     ConfigurationStrictRunChecker(configuration),
     job,
     Dispatchers.Unconfined
@@ -261,6 +265,7 @@ private val DEFAULT_CONFIGURATION = Configuration(
     testClassRegexes = null,
     includeSerialRegexes = null,
     excludeSerialRegexes = null,
+    ignoreTestFailureRegexes = null,
     testBatchTimeoutMillis = null,
     testOutputTimeoutMillis = null,
     debug = null,

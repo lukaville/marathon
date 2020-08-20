@@ -59,7 +59,7 @@ class StubDevice(
         }
 
         deferred.complete(
-            TestBatchResults(this,
+            TestBatchResults(testBatch.id, this,
                              testBatch.componentInfo,
                              results.filter { it.status == TestStatus.PASSED },
                              results.filter { it.status == TestStatus.FAILURE },

@@ -36,7 +36,7 @@ class LogcatCollectorTest {
         collector.onLogcatEvent(TestFinished(test, processId = 1, device = device))
         collector.onLogcatEvent(BatchFinished(batchId = "abc", device = device))
 
-        val report = collector.getLogReport()
+        val report = collector.getFullReport()
         report.batches.size shouldEqualTo 1
         report.batches["abc"] shouldNotBe null
         report.batches.getValue("abc").tests[test] shouldNotBe null
@@ -54,7 +54,7 @@ class LogcatCollectorTest {
         collector.onLogcatEvent(TestFinished(test, processId = 123, device = device))
         collector.onLogcatEvent(BatchFinished(batchId = "abc", device = device))
 
-        val report = collector.getLogReport()
+        val report = collector.getFullReport()
         report.batches.size shouldEqualTo 1
         report.batches["abc"] shouldNotBe null
         report.batches.getValue("abc").tests[test] shouldNotBe null
@@ -74,7 +74,7 @@ class LogcatCollectorTest {
         collector.onLogcatEvent(TestFinished(test, processId = 123, device = device))
         collector.onLogcatEvent(BatchFinished(batchId = "abc", device = device))
 
-        val report = collector.getLogReport()
+        val report = collector.getFullReport()
         report.batches.size shouldEqualTo 1
         report.batches["abc"] shouldNotBe null
         report.batches.getValue("abc").tests[test] shouldNotBe null
@@ -93,7 +93,7 @@ class LogcatCollectorTest {
         collector.onLogcatEvent(TestFinished(test, processId = 123, device = device))
         collector.onLogcatEvent(BatchFinished(batchId = "abc", device = device))
 
-        val report = collector.getLogReport()
+        val report = collector.getFullReport()
         report.batches.size shouldEqualTo 1
         report.batches["abc"] shouldNotBe null
         report.batches.getValue("abc").tests[test] shouldNotBe null
@@ -116,7 +116,7 @@ class LogcatCollectorTest {
         collector.onLogcatEvent(TestFinished(test2, processId = 1, device = device))
         collector.onLogcatEvent(BatchFinished(batchId = "abc", device = device))
 
-        val report = collector.getLogReport()
+        val report = collector.getFullReport()
         report.batches.size shouldEqualTo 1
         report.batches["abc"] shouldNotBe null
         report.batches.getValue("abc").tests[test1] shouldNotBe null
@@ -134,7 +134,7 @@ class LogcatCollectorTest {
         collector.onLogcatEvent(TestFinished(test, processId = 1, device = device))
         collector.onLogcatEvent(BatchFinished(batchId = "abc", device = device))
 
-        val report = collector.getLogReport()
+        val report = collector.getFullReport()
         report.batches.size shouldEqualTo 1
         report.batches["abc"] shouldNotBe null
         report.batches.getValue("abc").tests[test] shouldNotBe null
@@ -153,7 +153,7 @@ class LogcatCollectorTest {
         collector.onLogcatEvent(TestFinished(test, processId = 1, device = device))
         collector.onLogcatEvent(BatchFinished(batchId = "abc", device = device))
 
-        val report = collector.getLogReport()
+        val report = collector.getFullReport()
         report.batches.size shouldEqualTo 1
         report.batches["abc"] shouldNotBe null
         report.batches.getValue("abc").tests[test] shouldNotBe null
@@ -170,7 +170,7 @@ class LogcatCollectorTest {
         collector.onLogcatEvent(Message(logcatMessage = logcatMessage, device = device))
         collector.onLogcatEvent(BatchFinished(batchId = "abc", device = device))
 
-        val report = collector.getLogReport()
+        val report = collector.getFullReport()
         report.batches.size shouldEqualTo 1
         report.batches["abc"] shouldNotBe null
         report.batches.getValue("abc").log.file.readText() shouldMatch ".* 0-0/test E/test: Exception!\n".toRegex()
@@ -193,7 +193,7 @@ class LogcatCollectorTest {
         collector.onLogcatEvent(TestFinished(test, processId = 1, device = device))
         collector.onLogcatEvent(BatchFinished(batchId = "abc2", device = device))
 
-        val report = collector.getLogReport()
+        val report = collector.getFullReport()
         report.batches.size shouldEqualTo 2
         report.batches["abc1"] shouldNotBe null
         report.batches["abc2"] shouldNotBe null
@@ -219,7 +219,7 @@ class LogcatCollectorTest {
         collector.onLogcatEvent(BatchFinished(batchId = "abc2", device = device2))
         collector.onLogcatEvent(BatchFinished(batchId = "abc1", device = device1))
 
-        val report = collector.getLogReport()
+        val report = collector.getFullReport()
         report.batches.size shouldEqualTo 2
         report.batches["abc1"] shouldNotBe null
         report.batches["abc2"] shouldNotBe null

@@ -91,6 +91,7 @@ object DerivedDataManagerSpek : Spek(
                     testClassRegexes = null,
                     includeSerialRegexes = null,
                     excludeSerialRegexes = null,
+                    ignoreTestFailureRegexes = null,
                     testBatchTimeoutMillis = null,
                     testOutputTimeoutMillis = null,
                     debug = false,

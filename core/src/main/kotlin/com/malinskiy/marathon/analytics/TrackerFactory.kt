@@ -21,7 +21,7 @@ import com.malinskiy.marathon.report.html.HtmlSummaryReporter
 import com.malinskiy.marathon.report.junit.FinalJUnitReporter
 import com.malinskiy.marathon.report.junit.JUnitReporter
 import com.malinskiy.marathon.report.junit.JUnitWriter
-import com.malinskiy.marathon.report.logs.LogReportProvider
+import com.malinskiy.marathon.report.logs.LogsProvider
 import com.malinskiy.marathon.report.logs.LogReportTestEventInflator
 import com.malinskiy.marathon.report.raw.RawJsonReporter
 import com.malinskiy.marathon.report.stdout.StdoutReporter
@@ -38,7 +38,7 @@ internal class TrackerFactory(
     private val fileManager: FileManager,
     private val attachmentManager: AttachmentManager,
     private val cacheTestResultsTracker: CacheTestResultsTracker,
-    private val logReportProvider: LogReportProvider,
+    private val logsProvider: LogsProvider,
     private val gson: Gson,
     private val timer: Timer,
     private val track: Track
@@ -78,7 +78,7 @@ internal class TrackerFactory(
     private fun createExecutionReportGenerator(): ExecutionReportGenerator {
         val testResultDescriptionFactory = TestSummaryFormatter()
         val testEventInflators = {
-            listOf(LogReportTestEventInflator(logReportProvider.getLogReport()))
+            listOf(LogReportTestEventInflator(logsProvider.getFullReport()))
         }
 
         return ExecutionReportGenerator(

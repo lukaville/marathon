@@ -46,7 +46,4 @@ class LogReportTestEventInflator(private val logReport: LogReport) : TestEventIn
         val batchLogs = logReport.batches[batchId] ?: return null
         return batchLogs.tests.getOrDefault(logTest, batchLogs.log)
     }
-
-    private fun Test.toLogTest(): LogTest =
-        LogTest(pkg, clazz, method)
 }

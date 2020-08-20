@@ -36,7 +36,7 @@ class ProgressReportingListener(
             !receivedTestNames.contains(it.toSafeTestName())
         }.createUncompletedTestResults(received)
 
-        deferredResults.complete(TestBatchResults(device, testBatch.componentInfo, success, failure, uncompleted))
+        deferredResults.complete(TestBatchResults(testBatch.id, device, testBatch.componentInfo, success, failure, uncompleted))
     }
 
     private fun List<Test>.createUncompletedTestResults(received: Collection<TestResult>): Collection<TestResult> {
