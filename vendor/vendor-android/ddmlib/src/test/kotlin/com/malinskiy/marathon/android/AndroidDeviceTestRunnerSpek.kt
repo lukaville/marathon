@@ -73,7 +73,7 @@ class AndroidDeviceTestRunnerSpek : Spek(
                     testClassRegexes = null,
                     includeSerialRegexes = null,
                     excludeSerialRegexes = null,
-                    ignoreTestFailureRegexes = null,
+                    ignoreCrashRegexes = null,
                     testBatchTimeoutMillis = null,
                     testOutputTimeoutMillis = null,
                     debug = null,

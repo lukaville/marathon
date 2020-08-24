@@ -128,7 +128,7 @@ class QueueActor(
             testLog
                 .events
                 .any { logEvent ->
-                    logEvent is LogEvent.Crash && configuration.ignoreTestFailureRegexes.any { regexp -> regexp.matches(logEvent.message) }
+                    logEvent is LogEvent.Crash && configuration.ignoreCrashRegexes.any { regexp -> regexp.matches(logEvent.message) }
                 }
         }
 

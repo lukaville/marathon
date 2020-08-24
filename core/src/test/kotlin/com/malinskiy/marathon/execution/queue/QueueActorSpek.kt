@@ -14,7 +14,6 @@ import com.malinskiy.marathon.execution.TestResult
 import com.malinskiy.marathon.execution.TestShard
 import com.malinskiy.marathon.execution.TestStatus
 import com.malinskiy.marathon.execution.strategy.impl.batching.FixedSizeBatchingStrategy
-import com.malinskiy.marathon.report.logs.LogsProvider
 import com.malinskiy.marathon.test.Test
 import com.malinskiy.marathon.test.TestComponentInfo
 import com.malinskiy.marathon.test.TestVendorConfiguration
@@ -265,7 +264,7 @@ private val DEFAULT_CONFIGURATION = Configuration(
     testClassRegexes = null,
     includeSerialRegexes = null,
     excludeSerialRegexes = null,
-    ignoreTestFailureRegexes = null,
+    ignoreCrashRegexes = null,
     testBatchTimeoutMillis = null,
     testOutputTimeoutMillis = null,
     debug = null,

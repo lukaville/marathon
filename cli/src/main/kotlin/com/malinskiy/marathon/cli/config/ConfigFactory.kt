@@ -63,7 +63,7 @@ class ConfigFactory(private val mapper: ObjectMapper) {
             testClassRegexes = config.testClassRegexes,
             includeSerialRegexes = config.includeSerialRegexes,
             excludeSerialRegexes = config.excludeSerialRegexes,
-            ignoreTestFailureRegexes = config.ignoreTestFailureRegexes,
+            ignoreCrashRegexes = config.ignoreCrashRegexes,
             testBatchTimeoutMillis = config.testBatchTimeoutMillis,
             testOutputTimeoutMillis = config.testOutputTimeoutMillis,
             debug = config.debug,

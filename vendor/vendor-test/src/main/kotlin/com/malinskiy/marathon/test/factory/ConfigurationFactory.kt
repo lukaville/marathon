@@ -36,7 +36,7 @@ class ConfigurationFactory {
     var customAnalyticsTracker: Tracker? = null
     var analyticsConfiguration: AnalyticsConfiguration? = null
     var excludeSerialRegexes: List<Regex>? = null
-    var ignoreTestFailureRegexes: List<Regex>? = null
+    var ignoreCrashRegexes: List<Regex>? = null
     var fallbackToScreenshots: Boolean? = null
     var strictMode: Boolean? = null
     var uncompletedTestRetryQuota: Int? = null
@@ -91,7 +91,7 @@ class ConfigurationFactory {
             testClassRegexes = testClassRegexes,
             includeSerialRegexes = includeSerialRegexes,
             excludeSerialRegexes = excludeSerialRegexes,
-            ignoreTestFailureRegexes = ignoreTestFailureRegexes,
+            ignoreCrashRegexes = ignoreCrashRegexes,
             testBatchTimeoutMillis = testBatchTimeoutMillis,
             testOutputTimeoutMillis = testOutputTimeoutMillis,
             debug = debug,

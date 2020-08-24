@@ -37,7 +37,7 @@ data class FileConfiguration(
     var testClassRegexes: Collection<Regex>?,
     var includeSerialRegexes: Collection<Regex>?,
     var excludeSerialRegexes: Collection<Regex>?,
-    var ignoreTestFailureRegexes: Collection<Regex>?,
+    var ignoreCrashRegexes: Collection<Regex>?,
 
     var testBatchTimeoutMillis: Long?,
     var testOutputTimeoutMillis: Long?,
