@@ -10,11 +10,12 @@ import java.io.File
 import java.io.Writer
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.concurrent.ConcurrentHashMap
 
 class BatchLogSaver {
 
     private val fullBatchLogSaver = LogSaver()
-    private val testLogSavers: MutableMap<LogTest, LogSaver> = hashMapOf()
+    private val testLogSavers: MutableMap<LogTest, LogSaver> = ConcurrentHashMap()
 
     fun save(entry: SaveEntry, test: LogTest?) {
         fullBatchLogSaver.saveEntry(entry)
