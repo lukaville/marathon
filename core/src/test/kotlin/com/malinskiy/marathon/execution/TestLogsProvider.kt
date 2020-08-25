@@ -6,10 +6,10 @@ import com.malinskiy.marathon.report.logs.LogsProvider
 
 class TestLogsProvider(private val logs: Map<String, BatchLogs>) : LogsProvider {
 
-    override fun getFullReport(): LogReport {
-        return LogReport(logs)
-    }
+    override fun getFullReport(): LogReport =
+        LogReport(logs)
 
-    override suspend fun getBatchReport(batchId: String): BatchLogs? = logs[batchId]
+    override suspend fun getBatchReport(batchId: String): BatchLogs? =
+        logs[batchId]
 
 }
