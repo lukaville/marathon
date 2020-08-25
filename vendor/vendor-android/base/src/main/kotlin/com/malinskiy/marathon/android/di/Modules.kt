@@ -12,7 +12,7 @@ import com.malinskiy.marathon.cache.test.key.ComponentCacheKeyProvider
 import com.malinskiy.marathon.execution.ComponentInfoExtractor
 import com.malinskiy.marathon.execution.TestParser
 import com.malinskiy.marathon.io.CachedFileHasher
-import com.malinskiy.marathon.report.logs.LogReportProvider
+import com.malinskiy.marathon.report.logs.LogsProvider
 import org.koin.dsl.module
 
 val androidModule = module {
@@ -21,6 +21,6 @@ val androidModule = module {
     single<ComponentCacheKeyProvider?> { AndroidComponentCacheKeyProvider(CachedFileHasher(ApkFileHasher())) }
     single<LogcatCollector?> { LogcatCollector() }
     single<LogcatEventsListener?> { get<LogcatCollector>() }
-    single<LogReportProvider?> { get<LogcatCollector>() }
+    single<LogsProvider?> { get<LogcatCollector>() }
     single<LogcatListener?> { LogcatEventsAdapter(get()) }
 }

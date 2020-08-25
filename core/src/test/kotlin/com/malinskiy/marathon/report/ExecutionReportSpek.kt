@@ -56,6 +56,7 @@ class ExecutionReportSpek : Spek(
             testClassRegexes = null,
             includeSerialRegexes = null,
             excludeSerialRegexes = null,
+            ignoreCrashRegexes = null,
             testBatchTimeoutMillis = null,
             testOutputTimeoutMillis = null,
             debug = null,

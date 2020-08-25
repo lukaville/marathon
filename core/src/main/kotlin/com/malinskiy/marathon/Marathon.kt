@@ -20,6 +20,7 @@ import com.malinskiy.marathon.execution.TestShard
 import com.malinskiy.marathon.execution.progress.ProgressReporter
 import com.malinskiy.marathon.io.AttachmentManager
 import com.malinskiy.marathon.log.MarathonLogging
+import com.malinskiy.marathon.report.logs.LogsProvider
 import com.malinskiy.marathon.test.Test
 import com.malinskiy.marathon.test.toTestName
 import com.malinskiy.marathon.usageanalytics.TrackActionType
@@ -43,6 +44,7 @@ class Marathon(
     private val progressReporter: ProgressReporter,
     private val attachmentManager: AttachmentManager,
     private val strictRunChecker: StrictRunChecker,
+    private val logsProvider: LogsProvider,
     private val track: Track
 ) : MarathonRunner {
 
@@ -134,6 +136,7 @@ class Marathon(
             configuration,
             progressReporter,
             strictRunChecker,
+            logsProvider,
             track,
             currentCoroutineContext
         )

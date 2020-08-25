@@ -13,6 +13,10 @@ import com.malinskiy.marathon.execution.TestResult
 import com.malinskiy.marathon.execution.TestShard
 import com.malinskiy.marathon.execution.progress.ProgressReporter
 import com.malinskiy.marathon.log.MarathonLogging
+import com.malinskiy.marathon.report.logs.BatchLogs
+import com.malinskiy.marathon.report.logs.LogEvent
+import com.malinskiy.marathon.report.logs.LogsProvider
+import com.malinskiy.marathon.report.logs.toLogTest
 import com.malinskiy.marathon.test.Test
 import com.malinskiy.marathon.test.TestBatch
 import com.malinskiy.marathon.test.toTestName
@@ -29,6 +33,7 @@ class QueueActor(
     private val poolId: DevicePoolId,
     private val progressReporter: ProgressReporter,
     private val track: Track,
+    private val logProvider: LogsProvider,
     private val strictRunChecker: StrictRunChecker,
     poolJob: Job,
     coroutineContext: CoroutineContext
@@ -92,6 +97,42 @@ class QueueActor(
     }
 
     private suspend fun onBatchCompleted(device: DeviceInfo, results: TestBatchResults) {
+        val updatedResults = updateUncompletedTests(results)
+        handleCompletedBatch(device, updatedResults)
+    }
+
+    private suspend fun updateUncompletedTests(results: TestBatchResults): TestBatchResults {
+        val batchId = results.batchId
+        val batchLogs = logProvider.getBatchReport(batchId) ?: return results
+            .also {
+                logger.warn { "no logs for batch = $batchId" }
+            }
+
+        val (newUncompleted, failed) = results
+            .failed
+            .partitionIgnoredFailures(batchLogs)
+
+        newUncompleted.forEach {
+            logger.debug { "Test run marked as uncompleted for ${it.test.toTestName()} as error message matches to ignored test failures" }
+        }
+
+        return results.copy(
+            failed = failed,
+            uncompleted = results.uncompleted + newUncompleted
+        )
+    }
+
+    private fun Iterable<TestResult>.partitionIgnoredFailures(batchLogs: BatchLogs): Pair<List<TestResult>, List<TestResult>> =
+        partition {
+            val testLog = batchLogs.tests[it.test.toLogTest()] ?: return@partition false
+            testLog
+                .events
+                .any { logEvent ->
+                    logEvent is LogEvent.Crash && configuration.ignoreCrashRegexes.any { regexp -> regexp.matches(logEvent.message) }
+                }
+        }
+
+    private suspend fun handleCompletedBatch(device: DeviceInfo, results: TestBatchResults) {
         val (uncompletedRetryQuotaExceeded, uncompleted) = results.uncompleted.partition {
             (uncompletedTestsRetryCount[it.test] ?: 0) >= configuration.uncompletedTestRetryQuota
         }

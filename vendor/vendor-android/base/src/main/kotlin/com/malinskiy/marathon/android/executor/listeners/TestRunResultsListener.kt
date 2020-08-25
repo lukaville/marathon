@@ -81,7 +81,7 @@ class TestRunResultsListener(
             }
         }
 
-        deferred.complete(TestBatchResults(device, testBatch.componentInfo, finished, failed, uncompleted))
+        deferred.complete(TestBatchResults(testBatch.id, device, testBatch.componentInfo, finished, failed, uncompleted))
     }
 
     private fun Collection<Test>.createUncompletedTestResults(

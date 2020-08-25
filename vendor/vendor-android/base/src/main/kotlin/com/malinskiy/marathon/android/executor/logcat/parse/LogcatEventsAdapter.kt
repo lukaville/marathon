@@ -40,6 +40,10 @@ class LogcatEventsAdapter(private val parsedEventsListener: LogcatEventsListener
 
     private fun LogcatMessage.parseZygoteExitReason(device: AndroidDevice): FatalError? {
         if (tag == ZYGOTE_TAG) {
+            if (body.contains(ZYGOTE_KILLED_EXTERNALLY_EXIT_REASON)) {
+                return null
+            }
+
             val match = ZYGOTE_PROCESS_EXITED_REGEXP.find(body)
             val processId = match?.groups?.get(1)?.value?.toIntOrNull()
             if (processId != null) {
@@ -111,6 +115,7 @@ class LogcatEventsAdapter(private val parsedEventsListener: LogcatEventsListener
 
         private const val ZYGOTE_TAG = "Zygote"
         private val ZYGOTE_PROCESS_EXITED_REGEXP = "Process ([0-9]+) exited due to signal.*".toRegex()
+        private const val ZYGOTE_KILLED_EXTERNALLY_EXIT_REASON = "exited due to signal 9"
 
         private const val JVM_CRASH_REPORT_TAG = "AndroidRuntime"
         private const val JVM_CRASH_REPORT_PREFIX = "FATAL EXCEPTION"

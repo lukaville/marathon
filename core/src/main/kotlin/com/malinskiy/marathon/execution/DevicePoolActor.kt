@@ -14,6 +14,7 @@ import com.malinskiy.marathon.execution.progress.ProgressReporter
 import com.malinskiy.marathon.execution.queue.QueueActor
 import com.malinskiy.marathon.execution.queue.QueueMessage
 import com.malinskiy.marathon.log.MarathonLogging
+import com.malinskiy.marathon.report.logs.LogsProvider
 import com.malinskiy.marathon.test.TestBatch
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
@@ -29,6 +30,7 @@ class DevicePoolActor(
     analytics: Analytics,
     private val progressReporter: ProgressReporter,
     private val track: Track,
+    private val logsProvider: LogsProvider,
     private val strictRunChecker: StrictRunChecker,
     parent: Job,
     context: CoroutineContext
@@ -61,6 +63,7 @@ class DevicePoolActor(
         poolId,
         progressReporter,
         track,
+        logsProvider,
         strictRunChecker,
         poolJob,
         context

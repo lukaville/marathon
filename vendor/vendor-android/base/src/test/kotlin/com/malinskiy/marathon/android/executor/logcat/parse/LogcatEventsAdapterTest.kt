@@ -93,7 +93,7 @@ class LogcatEventsAdapterTest {
     }
 
     @Test
-    fun `on zygote fatal signal logcat message - passes fatal error crash event and logcat message event`() {
+    fun `on zygote fatal signal 11 logcat message - passes fatal error crash event and logcat message event`() {
         val device = mock<AndroidDevice>()
         val message = createLogcatMessage(
             processId = 123,
@@ -111,6 +111,25 @@ class LogcatEventsAdapterTest {
             LogcatEvent.FatalError(
                 message = "Process 6755 exited due to signal (11)",
                 processId = 6755,
+                device = device
+            )
+        )
+    }
+
+    @Test
+    fun `on zygote fatal signal 9 logcat message - ignores crash event and passes logcat message event`() {
+        val device = mock<AndroidDevice>()
+        val message = createLogcatMessage(
+            processId = 123,
+            tag = "Zygote",
+            body = "Process 6755 exited due to signal 9"
+        )
+
+        adapter.onMessage(device, message)
+
+        output shouldEqual listOf(
+            LogcatEvent.Message(
+                logcatMessage = message,
                 device = device
             )
         )

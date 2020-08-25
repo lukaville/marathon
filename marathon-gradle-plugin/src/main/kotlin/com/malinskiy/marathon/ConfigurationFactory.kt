@@ -106,6 +106,7 @@ private fun createConfiguration(
     testClassRegexes = extensionConfig.testClassRegexes?.map { it.toRegex() },
     includeSerialRegexes = extensionConfig.includeSerialRegexes?.map { it.toRegex() },
     excludeSerialRegexes = extensionConfig.excludeSerialRegexes?.map { it.toRegex() },
+    ignoreCrashRegexes = extensionConfig.ignoreCrashRegexes?.map { it.toRegex(RegexOption.DOT_MATCHES_ALL) },
     testBatchTimeoutMillis = extensionConfig.testBatchTimeoutMillis,
     testOutputTimeoutMillis = extensionConfig.testOutputTimeoutMillis,
     debug = extensionConfig.debug,

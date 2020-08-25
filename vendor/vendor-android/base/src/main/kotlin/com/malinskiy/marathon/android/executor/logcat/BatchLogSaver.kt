@@ -5,18 +5,20 @@ import com.malinskiy.marathon.report.logs.BatchLogs
 import com.malinskiy.marathon.report.logs.Log
 import com.malinskiy.marathon.report.logs.LogEvent
 import com.malinskiy.marathon.report.logs.LogTest
+import kotlinx.coroutines.CompletableDeferred
 import java.io.File
 import java.io.Writer
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.concurrent.ConcurrentHashMap
 
 class BatchLogSaver {
 
-    private val logSaver = LogSaver()
-    private val testLogSavers: MutableMap<LogTest, LogSaver> = hashMapOf()
+    private val fullBatchLogSaver = LogSaver()
+    private val testLogSavers: MutableMap<LogTest, LogSaver> = ConcurrentHashMap()
 
     fun save(entry: SaveEntry, test: LogTest?) {
-        logSaver.saveEntry(entry)
+        fullBatchLogSaver.saveEntry(entry)
 
         if (test != null) {
             val testSaver = testLogSavers.getOrPut(test) { LogSaver() }
@@ -24,22 +26,22 @@ class BatchLogSaver {
         }
     }
 
-    fun close(test: LogTest) {
+    fun onTestFinished(test: LogTest) {
         testLogSavers[test]?.close()
     }
 
-    fun close() {
+    fun onBatchFinished() {
         testLogSavers.values.forEach(LogSaver::close)
-        logSaver.close()
+        fullBatchLogSaver.close()
     }
 
-    fun createBatchLogs(): BatchLogs {
+    suspend fun getBatchLogs(forceCreate: Boolean): BatchLogs {
         val tests = testLogSavers
-            .mapValues { it.value.createLog() }
+            .mapValues { it.value.getLog(forceCreate) }
 
         return BatchLogs(
             tests = tests,
-            log = logSaver.createLog()
+            log = fullBatchLogSaver.getLog(forceCreate)
         )
     }
 
@@ -51,14 +53,18 @@ class BatchLogSaver {
     private class LogSaver {
 
         private val logFile: File = createTempFile()
-            .also { it.deleteOnExit() }
+            .also {
+                // file will be copied to target directory before exit
+                it.deleteOnExit()
+            }
 
         private val fileWriter: Writer = logFile.bufferedWriter()
         private val events: MutableList<LogEvent> = arrayListOf()
-        private var isClosed = false
+
+        private val logFuture: CompletableDeferred<Log> = CompletableDeferred()
 
         fun saveEntry(entry: SaveEntry) {
-            if (isClosed) return
+            if (logFuture.isCompleted) return
 
             when (entry) {
                 is SaveEntry.Message -> fileWriter.writeMessage(entry.message)
@@ -67,13 +73,19 @@ class BatchLogSaver {
         }
 
         fun close() {
-            isClosed = true
-            fileWriter.close()
+            try {
+                fileWriter.close()
+            } finally {
+                logFuture.complete(Log(logFile, events))
+            }
         }
 
-        fun createLog(): Log {
-            close()
-            return Log(logFile, events)
+        suspend fun getLog(forceCreate: Boolean): Log {
+            if (forceCreate) {
+                close()
+            }
+
+            return logFuture.await()
         }
 
         private fun Writer.writeMessage(logcatMessage: LogcatMessage) {

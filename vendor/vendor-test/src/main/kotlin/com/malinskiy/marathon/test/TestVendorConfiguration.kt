@@ -3,8 +3,9 @@ package com.malinskiy.marathon.test
 import com.malinskiy.marathon.cache.test.key.ComponentCacheKeyProvider
 import com.malinskiy.marathon.device.DeviceFeature
 import com.malinskiy.marathon.execution.TestParser
+import com.malinskiy.marathon.report.logs.BatchLogs
 import com.malinskiy.marathon.report.logs.LogReport
-import com.malinskiy.marathon.report.logs.LogReportProvider
+import com.malinskiy.marathon.report.logs.LogsProvider
 import com.malinskiy.marathon.vendor.VendorConfiguration
 import org.koin.core.module.Module
 import org.koin.dsl.module
@@ -25,9 +26,10 @@ class TestVendorConfiguration(
     override fun modules(): List<Module> =
         listOf(module {
             single<ComponentCacheKeyProvider?> { componentCacheKeyProvider }
-            single<LogReportProvider?> {
-                object : LogReportProvider {
-                    override fun getLogReport(): LogReport = LogReport(emptyMap())
+            single<LogsProvider?> {
+                object : LogsProvider {
+                    override fun getFullReport(): LogReport = LogReport(emptyMap())
+                    override suspend fun getBatchReport(batchId: String): BatchLogs? = null
                 }
             }
         })
