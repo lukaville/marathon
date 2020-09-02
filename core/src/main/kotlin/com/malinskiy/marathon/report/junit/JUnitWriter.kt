@@ -60,7 +60,7 @@ class JUnitWriter(
                     attribute("name", test.method)
                     attribute("time", testResult.durationMillis().toJUnitSeconds())
                     element("system-out") {
-                        writeCharacters(testSummaryFormatter.formatTestResultSummary(testResult, testSummary))
+                        writeCData(testSummaryFormatter.formatTestResultSummary(testResult, testSummary))
                     }
                     when (testResult.status) {
                         TestStatus.IGNORED, TestStatus.ASSUMPTION_FAILURE -> {

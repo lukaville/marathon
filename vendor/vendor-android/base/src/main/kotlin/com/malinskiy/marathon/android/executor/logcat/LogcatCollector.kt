@@ -12,6 +12,7 @@ import com.malinskiy.marathon.report.logs.LogTest
 import com.malinskiy.marathon.report.logs.LogsProvider
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
@@ -50,6 +51,10 @@ class LogcatCollector : LogcatEventsListener, LogsProvider {
             is LogcatEvent.BatchStarted -> {
                 devices.compute(event.device) { _, oldState ->
                     val state = oldState ?: DeviceState()
+                    if (state.currentBatchId != null && state.currentBatchId != event.batchId) {
+                        // previous unfinished batch, let's close it
+                        batchCollectors[state.currentBatchId]?.onBatchFinished()
+                    }
                     state.copy(currentBatchId = event.batchId, currentTest = null)
                 }
             }
@@ -105,7 +110,11 @@ class LogcatCollector : LogcatEventsListener, LogsProvider {
             batchCollectors[batchId]?.getBatchLogs(forceCreate = false)
         }
 
-        withTimeout(GET_BATCH_REPORT_TIMEOUT_MILLIS) { deferred.await() }
+        try {
+            withTimeout(GET_BATCH_REPORT_TIMEOUT_MILLIS) { deferred.await() }
+        } catch (ignored: TimeoutCancellationException) {
+            logger.warn { "Timeout reached while waiting for batch $batchId logcat" }
+        }
 
         return if (deferred.isCompleted) {
             deferred.getCompleted()
@@ -125,7 +134,7 @@ class LogcatCollector : LogcatEventsListener, LogsProvider {
     )
 
     private companion object {
-        private const val GET_BATCH_REPORT_TIMEOUT_MILLIS = 60 * 1000L
+        private const val GET_BATCH_REPORT_TIMEOUT_MILLIS = 20 * 1000L
     }
 }
 
