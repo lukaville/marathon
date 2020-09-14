@@ -28,16 +28,19 @@ class AttachmentManager(private val outputDirectory: File) {
     }
 
     fun writeToTarget(
+        batchId: String,
         poolId: DevicePoolId,
         device: DeviceInfo,
         test: Test,
         attachment: Attachment
-    ) {
+    ): File {
         val directory = createDirectory(attachment.fileType, poolId, device)
-        val filename = createFilename(test, attachment.fileType)
+        val filename = createFilename(test, batchId, attachment.fileType)
         val targetFile = createFile(directory, filename)
 
         attachment.file.copyTo(targetFile)
+
+        return targetFile
     }
 
     fun terminate() {
@@ -55,7 +58,8 @@ class AttachmentManager(private val outputDirectory: File) {
 
     private fun createFile(directory: Path, filename: String): File = File(directory.toFile(), filename)
 
-    private fun createFilename(test: Test, fileType: FileType): String = "${test.toTestName()}.${fileType.suffix}"
+    private fun createFilename(test: Test, batchId: String, fileType: FileType): String =
+        "${test.toTestName()}-$batchId.${fileType.suffix}"
 
     private companion object {
         private const val TEMP_FILE_PREFIX = "test_run_attachment"

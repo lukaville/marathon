@@ -15,7 +15,7 @@ import com.malinskiy.marathon.io.FileManager
 import com.malinskiy.marathon.io.FileType
 import com.malinskiy.marathon.log.MarathonLogging
 import com.malinskiy.marathon.report.allure.AllureReporter
-import com.malinskiy.marathon.report.attachment.AttachmentsReporter
+import com.malinskiy.marathon.report.attachment.AttachmentTestEventInflator
 import com.malinskiy.marathon.report.device.DeviceInfoJsonReporter
 import com.malinskiy.marathon.report.html.HtmlSummaryReporter
 import com.malinskiy.marathon.report.junit.FinalJUnitReporter
@@ -78,7 +78,10 @@ internal class TrackerFactory(
     private fun createExecutionReportGenerator(): ExecutionReportGenerator {
         val testResultDescriptionFactory = TestSummaryFormatter()
         val testEventInflators = {
-            listOf(LogReportTestEventInflator(logsProvider.getFullReport()))
+            listOf(
+                LogReportTestEventInflator(logsProvider.getFullReport()),
+                AttachmentTestEventInflator(attachmentManager)
+            )
         }
 
         return ExecutionReportGenerator(
@@ -90,9 +93,8 @@ internal class TrackerFactory(
                 TraceReporter(configuration.outputDir),
                 RawJsonReporter(fileManager, gson),
                 TestJsonReporter(fileManager, gson),
-                AllureReporter(configuration, File(configuration.outputDir, "allure-results")),
+                AllureReporter(configuration, File(configuration.outputDir, "allure-results"), testResultDescriptionFactory),
                 HtmlSummaryReporter(gson, configuration.outputDir, configuration, testResultDescriptionFactory),
-                AttachmentsReporter(attachmentManager),
                 StdoutReporter(timer)
             ),
             testEventInflatorsFactory = testEventInflators

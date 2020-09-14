@@ -19,7 +19,7 @@ class ScreenRecorderTestRunListener(
     private val device: AndroidDevice
 ) : TestRunListener, AttachmentProvider {
 
-    val attachmentListeners = mutableListOf<AttachmentListener>()
+    private val attachmentListeners = mutableListOf<AttachmentListener>()
 
     override fun registerListener(listener: AttachmentListener) {
         attachmentListeners.add(listener)
