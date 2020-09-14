@@ -165,6 +165,8 @@ class Marathon(
         try {
             scheduler.stopAndWaitForCompletion()
             onFinish(analytics, deviceProvider, attachmentManager)
+        } catch (throwable: Throwable) {
+            log.error("Error occurred while finishing tests run", throwable)
         } finally {
             hook.uninstall()
 
