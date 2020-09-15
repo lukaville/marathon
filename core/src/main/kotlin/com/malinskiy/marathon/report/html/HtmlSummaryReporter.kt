@@ -26,6 +26,7 @@ import org.apache.commons.text.StringEscapeUtils
 import java.io.File
 import java.io.InputStream
 import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.roundToLong
@@ -280,5 +281,5 @@ class HtmlSummaryReporter(
     )
 
     private fun String.urlEncode(): String =
-        URLEncoder.encode(this, "utf-8")
+        URLEncoder.encode(this, StandardCharsets.UTF_8)
 }
