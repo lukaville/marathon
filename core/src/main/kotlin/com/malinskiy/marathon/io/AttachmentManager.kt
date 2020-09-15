@@ -10,7 +10,6 @@ import java.io.File
 import java.nio.file.Files.createDirectories
 import java.nio.file.Path
 import java.nio.file.Paths.get
-import java.time.Instant
 
 class AttachmentManager(private val outputDirectory: File) {
 

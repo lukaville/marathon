@@ -7,6 +7,7 @@ import com.malinskiy.marathon.device.DeviceInfo
 import com.malinskiy.marathon.execution.Configuration
 import com.malinskiy.marathon.execution.TestResult
 import com.malinskiy.marathon.execution.TestStatus
+import com.malinskiy.marathon.extension.relativePathTo
 import com.malinskiy.marathon.report.Reporter
 import com.malinskiy.marathon.report.summary.TestSummary
 import com.malinskiy.marathon.report.summary.TestSummaryFormatter
@@ -87,7 +88,7 @@ class AllureReporter(
 
         val summaryAttachment = Attachment()
             .setName("Summary")
-            .setSource(summaryFile.absolutePath)
+            .setSource(summaryFile.relativePathTo(outputDirectory))
             .setType("text/plain")
 
         val testAttachments: List<Attachment> = testResult
@@ -95,7 +96,7 @@ class AllureReporter(
             .map {
                 Attachment()
                     .setName(it.type.name.toLowerCase().capitalize())
-                    .setSource(it.file.absolutePath)
+                    .setSource(it.file.relativePathTo(outputDirectory))
                     .setType(it.type.toMimeType())
             }
 
