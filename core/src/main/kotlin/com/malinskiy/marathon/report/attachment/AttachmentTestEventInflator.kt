@@ -19,6 +19,7 @@ class AttachmentTestEventInflator(
                     test.batchId,
                     event.poolId,
                     test.device,
+                    event.instant,
                     test.test,
                     attachment
                 )
