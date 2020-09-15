@@ -6,6 +6,8 @@ import com.malinskiy.marathon.analytics.internal.sub.PoolSummary
 import com.malinskiy.marathon.analytics.internal.sub.Summary
 import com.malinskiy.marathon.device.DeviceFeature
 import com.malinskiy.marathon.device.DeviceInfo
+import com.malinskiy.marathon.execution.Attachment
+import com.malinskiy.marathon.execution.AttachmentType
 import com.malinskiy.marathon.execution.Configuration
 import com.malinskiy.marathon.execution.TestResult
 import com.malinskiy.marathon.execution.TestStatus
@@ -23,6 +25,7 @@ import com.malinskiy.marathon.report.summary.TestSummaryFormatter
 import org.apache.commons.text.StringEscapeUtils
 import java.io.File
 import java.io.InputStream
+import java.net.URLEncoder
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.roundToLong
@@ -97,7 +100,11 @@ class HtmlSummaryReporter(
             pool.tests.map { it to File(File(poolsDir, pool.poolId.name), it.device.serialNumber).apply { mkdirs() } }
                 .map { (test, testDir) ->
                     val testSummary = testSummaries[test.test]
-                    Triple(test, test.toHtmlFullTest(poolId = pool.poolId.name, summary = testSummary), testDir)
+                    Triple(
+                        test,
+                        test.toHtmlFullTest(outputDirectory = testDir, poolId = pool.poolId.name, summary = testSummary),
+                        testDir
+                    )
                 }
                 .forEach { (test, htmlTest, testDir) ->
                     val testJson = gson.toJson(htmlTest)
@@ -114,9 +121,9 @@ class HtmlSummaryReporter(
                     val logDir = File(testDir, "logs")
                     logDir.mkdirs()
 
+                    val testLogHtmlFile = File(logDir, "${htmlTest.id}.html")
                     val testLogDetails = toHtmlTestLogDetails(pool.poolId.name, htmlTest)
                     val testLogJson = gson.toJson(testLogDetails)
-                    val testLogHtmlFile = File(logDir, "${htmlTest.id}.html")
 
                     testLogHtmlFile.writeText(
                         indexHtml
@@ -129,9 +136,9 @@ class HtmlSummaryReporter(
         }
     }
 
-    fun inputStreamFromResources(path: String): InputStream = HtmlPoolSummary::class.java.classLoader.getResourceAsStream(path)
+    private fun inputStreamFromResources(path: String): InputStream = HtmlPoolSummary::class.java.classLoader.getResourceAsStream(path)
 
-    fun generateLogcatHtml(logcatOutput: String): String = when (logcatOutput.isNotEmpty()) {
+    private fun generateLogcatHtml(logcatOutput: String): String = when (logcatOutput.isNotEmpty()) {
         false -> ""
         true -> logcatOutput
             .lines()
@@ -147,7 +154,7 @@ class HtmlSummaryReporter(
             }.appendln("""</div></div>""").toString()
     }
 
-    fun cssClassForLogcatLine(logcatLine: String): String {
+    private fun cssClassForLogcatLine(logcatLine: String): String {
         // Logcat line example: `06-07 16:55:14.490  2100  2100 I MicroDetectionWorker: #onError(false)`
         // First letter is Logcat level.
         return when (logcatLine.firstOrNull { it.isLetter() }) {
@@ -161,16 +168,20 @@ class HtmlSummaryReporter(
         }
     }
 
-    fun DeviceInfo.toHtmlDevice() = HtmlDevice(
+    private fun DeviceInfo.toHtmlDevice() = HtmlDevice(
         apiLevel = operatingSystem.version,
         isTablet = false,
         serial = serialNumber,
         modelName = model
     )
 
-    fun TestResult.toHtmlFullTest(poolId: String, summary: TestSummary?): HtmlFullTest {
+    private fun TestResult.toHtmlFullTest(poolId: String, summary: TestSummary?, outputDirectory: File): HtmlFullTest {
         val formattedSummary = testSummaryFormatter.formatTestResultSummary(this, summary)
         val log = stacktrace.orEmpty() + "\n\n" + formattedSummary
+
+        val video = attachments.getAttachment(AttachmentType.VIDEO, outputDirectory)
+        val screenshot = attachments.getAttachment(AttachmentType.SCREENSHOT, outputDirectory)
+        val logPath = attachments.getAttachment(AttachmentType.LOG, outputDirectory)
 
         return HtmlFullTest(
             poolId = poolId,
@@ -184,26 +195,32 @@ class HtmlSummaryReporter(
             diagnosticVideo = device.deviceFeatures.contains(DeviceFeature.VIDEO),
             diagnosticScreenshots = device.deviceFeatures.contains(DeviceFeature.SCREENSHOT),
             stacktrace = log,
-            screenshot = when (device.deviceFeatures.contains(DeviceFeature.SCREENSHOT)) {
-                true -> "../../../../screenshot/$poolId/${device.serialNumber}/${test.pkg}.${test.clazz}%23${test.method}.gif"
-                false -> ""
-            },
-            video = when (device.deviceFeatures.contains(DeviceFeature.VIDEO)) {
-                true -> "../../../../video/$poolId/${device.serialNumber}/${test.pkg}.${test.clazz}%23${test.method}.mp4"
-                false -> ""
-            },
-            logFile = "../../../../logs/$poolId/${device.serialNumber}/${test.pkg}.${test.clazz}%23${test.method}.log"
+            screenshot = screenshot,
+            video = video,
+            logFile = logPath
         )
     }
 
-    fun TestStatus.toHtmlStatus() = when (this) {
+    private fun List<Attachment>.getAttachment(type: AttachmentType, relativeTo: File): String {
+        val relativePath = firstOrNull { it.type == type }
+            ?.file
+            ?.relativePathTo(relativeTo)
+            ?: return ""
+
+        val fileName = relativePath.substringAfterLast(File.separator)
+        val path = relativePath.substringBeforeLast(File.separator, missingDelimiterValue = "")
+
+        return path + File.separator + fileName.urlEncode()
+    }
+
+    private fun TestStatus.toHtmlStatus() = when (this) {
         TestStatus.PASSED -> Status.Passed
         TestStatus.FAILURE -> Status.Failed
         TestStatus.IGNORED, TestStatus.ASSUMPTION_FAILURE -> Status.Ignored
         else -> Status.Failed
     }
 
-    fun PoolSummary.toHtmlPoolSummary() = HtmlPoolSummary(
+    private fun PoolSummary.toHtmlPoolSummary() = HtmlPoolSummary(
         id = poolId.name,
         tests = tests.map { it.toHtmlShortSuite() },
         passedCount = passed,
@@ -214,7 +231,7 @@ class HtmlSummaryReporter(
     )
 
 
-    fun Summary.toHtmlIndex() = HtmlIndex(
+    private fun Summary.toHtmlIndex() = HtmlIndex(
         title = configuration.name,
         totalFailed = pools.sumBy { it.failed },
         totalIgnored = pools.sumBy { it.ignored },
@@ -227,22 +244,21 @@ class HtmlSummaryReporter(
         pools = pools.map { it.toHtmlPoolSummary() }
     )
 
-    fun totalDuration(poolSummaries: List<PoolSummary>): Long {
+    private fun totalDuration(poolSummaries: List<PoolSummary>): Long {
         return poolSummaries.flatMap { it.tests }.sumByDouble { it.durationMillis() * 1.0 }.toLong()
     }
 
-    fun averageDuration(poolSummaries: List<PoolSummary>) = durationPerPool(poolSummaries).average().roundToLong()
+    private fun averageDuration(poolSummaries: List<PoolSummary>) = durationPerPool(poolSummaries).average().roundToLong()
 
-    fun minDuration(poolSummaries: List<PoolSummary>) = durationPerPool(poolSummaries).min() ?: 0
+    private fun minDuration(poolSummaries: List<PoolSummary>) = durationPerPool(poolSummaries).min() ?: 0
 
     private fun durationPerPool(poolSummaries: List<PoolSummary>) =
         poolSummaries.map { it.tests }
             .map { it.sumByDouble { it.durationMillis() * 1.0 } }.map { it.toLong() }
 
-    fun maxDuration(poolSummaries: List<PoolSummary>) = durationPerPool(poolSummaries).max() ?: 0
+    private fun maxDuration(poolSummaries: List<PoolSummary>) = durationPerPool(poolSummaries).max() ?: 0
 
-
-    fun TestResult.toHtmlShortSuite() = HtmlShortTest(
+    private fun TestResult.toHtmlShortSuite() = HtmlShortTest(
         id = "${test.pkg}.${test.clazz}.${test.method}",
         packageName = test.pkg,
         className = test.clazz,
@@ -260,8 +276,9 @@ class HtmlSummaryReporter(
         testId = fullTest.id,
         displayName = fullTest.name,
         deviceId = fullTest.deviceId,
-        logPath = "../../../../../logs/$poolId/${fullTest.deviceId}/${fullTest.packageName}.${fullTest.className}%23${fullTest.name}.log"
+        logPath = "../" + fullTest.logFile
     )
 
-
+    private fun String.urlEncode(): String =
+        URLEncoder.encode(this, "utf-8")
 }
