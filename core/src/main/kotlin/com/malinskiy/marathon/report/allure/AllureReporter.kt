@@ -123,7 +123,7 @@ class AllureReporter(
             val isFlaky = summary?.isFlaky ?: false
             allureTestResult.setStatusDetails(
                 StatusDetails()
-                    .setMessage(it.lines().first())
+                    .setMessage(it.lines().take(MESSAGE_LINES_COUNT).joinToString(separator = "\n"))
                     .setFlaky(isFlaky)
                     .setTrace(it)
             )
@@ -168,5 +168,9 @@ class AllureReporter(
         }
 
         return null
+    }
+
+    private companion object {
+        private const val MESSAGE_LINES_COUNT = 3
     }
 }
