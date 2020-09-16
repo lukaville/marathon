@@ -120,9 +120,11 @@ class AllureReporter(
             )
 
         testResult.stacktrace?.let {
+            val isFlaky = summary?.isFlaky ?: false
             allureTestResult.setStatusDetails(
                 StatusDetails()
                     .setMessage(it.lines().first())
+                    .setFlaky(isFlaky)
                     .setTrace(it)
             )
         }
