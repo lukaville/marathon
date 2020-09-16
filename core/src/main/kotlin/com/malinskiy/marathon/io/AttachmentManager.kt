@@ -28,16 +28,20 @@ class AttachmentManager(private val outputDirectory: File) {
     }
 
     fun writeToTarget(
+        batchId: String,
         poolId: DevicePoolId,
         device: DeviceInfo,
+        runId: String,
         test: Test,
         attachment: Attachment
-    ) {
+    ): File {
         val directory = createDirectory(attachment.fileType, poolId, device)
-        val filename = createFilename(test, attachment.fileType)
+        val filename = createFilename(test, runId, batchId, attachment.fileType)
         val targetFile = createFile(directory, filename)
 
         attachment.file.copyTo(targetFile)
+
+        return targetFile
     }
 
     fun terminate() {
@@ -55,10 +59,14 @@ class AttachmentManager(private val outputDirectory: File) {
 
     private fun createFile(directory: Path, filename: String): File = File(directory.toFile(), filename)
 
-    private fun createFilename(test: Test, fileType: FileType): String = "${test.toTestName()}.${fileType.suffix}"
+    private fun createFilename(test: Test, runId: String, batchId: String, fileType: FileType): String =
+        "${test.toTestName().take(TEST_NAME_CHARACTERS_LIMIT)}-$runId-$batchId.${fileType.suffix}"
 
     private companion object {
         private const val TEMP_FILE_PREFIX = "test_run_attachment"
         private const val TEMP_FILE_SUFFIX = "tmp"
+
+        // On some file systems file names are limited to 255 symbols
+        private const val TEST_NAME_CHARACTERS_LIMIT = 150
     }
 }

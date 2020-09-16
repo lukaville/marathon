@@ -7,7 +7,10 @@ import com.malinskiy.marathon.device.DeviceInfo
 import com.malinskiy.marathon.execution.Configuration
 import com.malinskiy.marathon.execution.TestResult
 import com.malinskiy.marathon.execution.TestStatus
+import com.malinskiy.marathon.extension.relativePathTo
 import com.malinskiy.marathon.report.Reporter
+import com.malinskiy.marathon.report.summary.TestSummary
+import com.malinskiy.marathon.report.summary.TestSummaryFormatter
 import com.malinskiy.marathon.test.Test
 import com.malinskiy.marathon.test.toSimpleSafeTestName
 import io.qameta.allure.AllureLifecycle
@@ -29,14 +32,23 @@ import io.qameta.allure.util.ResultsUtils
 import java.io.File
 import java.util.*
 
-class AllureReporter(val configuration: Configuration, private val outputDirectory: File) : Reporter {
+class AllureReporter(
+    val configuration: Configuration,
+    private val outputDirectory: File,
+    private val testSummaryFormatter: TestSummaryFormatter
+) : Reporter {
 
     private val lifecycle: AllureLifecycle by lazy { AllureLifecycle(FileSystemResultsWriter(outputDirectory.toPath())) }
 
     override fun generate(executionReport: ExecutionReport) {
+        outputDirectory.mkdirs()
+
+        val summaries: Map<Test, TestSummary> = executionReport.testSummaries
+
         executionReport.testEvents.forEach { testEvent ->
             val uuid = UUID.randomUUID().toString()
-            val allureResults = createTestResult(uuid, testEvent.device, testEvent.testResult)
+            val summary = summaries[testEvent.testResult.test]
+            val allureResults = createTestResult(uuid, testEvent.device, testEvent.testResult, summary)
             lifecycle.scheduleTestCase(uuid, allureResults)
             lifecycle.writeTestCase(uuid)
         }
@@ -52,7 +64,12 @@ class AllureReporter(val configuration: Configuration, private val outputDirecto
         )
     }
 
-    private fun createTestResult(uuid: String, device: DeviceInfo, testResult: TestResult): io.qameta.allure.model.TestResult {
+    private fun createTestResult(
+        uuid: String,
+        device: DeviceInfo,
+        testResult: TestResult,
+        summary: TestSummary?
+    ): io.qameta.allure.model.TestResult {
         val test = testResult.test
         val fullName = test.toSimpleSafeTestName()
         val suite = "${test.pkg}.${test.clazz}"
@@ -65,12 +82,25 @@ class AllureReporter(val configuration: Configuration, private val outputDirecto
             TestStatus.IGNORED -> Status.SKIPPED
         }
 
-        val allureAttachments: List<Attachment> = testResult.attachments.map {
-            Attachment()
-                .setName(it.type.name.toLowerCase().capitalize())
-                .setSource(it.file.absolutePath)
-                .setType(it.type.toMimeType())
-        }
+        val summaryFile = outputDirectory
+            .resolve("$uuid-summary.log")
+            .apply { writeText(testSummaryFormatter.formatTestResultSummary(testResult, summary)) }
+
+        val summaryAttachment = Attachment()
+            .setName("Summary")
+            .setSource(summaryFile.relativePathTo(outputDirectory))
+            .setType("text/plain")
+
+        val testAttachments: List<Attachment> = testResult
+            .attachments
+            .map {
+                Attachment()
+                    .setName(it.type.name.toLowerCase().capitalize())
+                    .setSource(it.file.relativePathTo(outputDirectory))
+                    .setType(it.type.toMimeType())
+            }
+
+        val allAttachments = listOf(summaryAttachment) + testAttachments
 
         val allureTestResult = io.qameta.allure.model.TestResult()
             .setUuid(uuid)
@@ -79,7 +109,7 @@ class AllureReporter(val configuration: Configuration, private val outputDirecto
             .setStatus(status)
             .setStart(testResult.startTime)
             .setStop(testResult.endTime)
-            .setAttachments(allureAttachments)
+            .setAttachments(allAttachments)
             .setParameters()
             .setLabels(
                 ResultsUtils.createHostLabel().setValue(device.serialNumber),
