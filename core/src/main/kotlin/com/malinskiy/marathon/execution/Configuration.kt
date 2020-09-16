@@ -34,6 +34,7 @@ data class Configuration constructor(
     val filteringConfiguration: FilteringConfiguration,
     val pullScreenshotFilterConfiguration: FilteringConfiguration,
     val strictRunFilterConfiguration: StrictRunFilterConfiguration,
+    val listener: MarathonListener?,
 
     val cache: CacheConfiguration,
     val ignoreFailures: Boolean,
@@ -71,6 +72,7 @@ data class Configuration constructor(
         filteringConfiguration: FilteringConfiguration?,
         pullScreenshotFilterConfiguration: FilteringConfiguration?,
         strictRunFilterConfiguration: StrictRunFilterConfiguration?,
+        listener: MarathonListener?,
 
         cache: CacheConfiguration?,
         ignoreFailures: Boolean?,
@@ -93,36 +95,37 @@ data class Configuration constructor(
         analyticsTracking: Boolean?
     ) :
 
-            this(
-                name = name,
-                outputDir = outputDir,
-                customAnalyticsTracker = customAnalyticsTracker,
-                analyticsConfiguration = analyticsConfiguration ?: AnalyticsConfiguration.DisabledAnalytics,
-                poolingStrategy = poolingStrategy ?: OmniPoolingStrategy(),
-                shardingStrategy = shardingStrategy ?: ParallelShardingStrategy(),
-                sortingStrategy = sortingStrategy ?: NoSortingStrategy(),
-                batchingStrategy = batchingStrategy ?: IsolateBatchingStrategy(),
-                flakinessStrategy = flakinessStrategy ?: IgnoreFlakinessStrategy(),
-                retryStrategy = retryStrategy ?: NoRetryStrategy(),
-                filteringConfiguration = filteringConfiguration ?: FilteringConfiguration(emptyList(), emptyList()),
-                strictRunFilterConfiguration = strictRunFilterConfiguration ?: StrictRunFilterConfiguration(emptyList()),
-                cache = cache ?: CacheConfiguration(),
-                ignoreFailures = ignoreFailures ?: false,
-                isCodeCoverageEnabled = isCodeCoverageEnabled ?: false,
-                fallbackToScreenshots = fallbackToScreenshots ?: false,
-                strictMode = strictMode ?: false,
-                uncompletedTestRetryQuota = uncompletedTestRetryQuota ?: Integer.MAX_VALUE,
-                testClassRegexes = testClassRegexes ?: listOf(Regex("^((?!Abstract).)*Test$")),
-                includeSerialRegexes = includeSerialRegexes ?: emptyList(),
-                excludeSerialRegexes = excludeSerialRegexes ?: emptyList(),
-                ignoreCrashRegexes = ignoreCrashRegexes ?: emptyList(),
-                testBatchTimeoutMillis = testBatchTimeoutMillis ?: DEFAULT_EXECUTION_TIMEOUT_MILLIS,
-                testOutputTimeoutMillis = testOutputTimeoutMillis ?: DEFAULT_OUTPUT_TIMEOUT_MILLIS,
-                debug = debug ?: true,
-                vendorConfiguration = vendorConfiguration,
-                analyticsTracking = analyticsTracking ?: false,
-                pullScreenshotFilterConfiguration = pullScreenshotFilterConfiguration ?: FilteringConfiguration(emptyList(), emptyList())
-            )
+        this(
+            name = name,
+            outputDir = outputDir,
+            customAnalyticsTracker = customAnalyticsTracker,
+            analyticsConfiguration = analyticsConfiguration ?: AnalyticsConfiguration.DisabledAnalytics,
+            poolingStrategy = poolingStrategy ?: OmniPoolingStrategy(),
+            shardingStrategy = shardingStrategy ?: ParallelShardingStrategy(),
+            sortingStrategy = sortingStrategy ?: NoSortingStrategy(),
+            batchingStrategy = batchingStrategy ?: IsolateBatchingStrategy(),
+            flakinessStrategy = flakinessStrategy ?: IgnoreFlakinessStrategy(),
+            retryStrategy = retryStrategy ?: NoRetryStrategy(),
+            filteringConfiguration = filteringConfiguration ?: FilteringConfiguration(emptyList(), emptyList()),
+            strictRunFilterConfiguration = strictRunFilterConfiguration ?: StrictRunFilterConfiguration(emptyList()),
+            cache = cache ?: CacheConfiguration(),
+            ignoreFailures = ignoreFailures ?: false,
+            isCodeCoverageEnabled = isCodeCoverageEnabled ?: false,
+            fallbackToScreenshots = fallbackToScreenshots ?: false,
+            strictMode = strictMode ?: false,
+            listener = listener,
+            uncompletedTestRetryQuota = uncompletedTestRetryQuota ?: Integer.MAX_VALUE,
+            testClassRegexes = testClassRegexes ?: listOf(Regex("^((?!Abstract).)*Test$")),
+            includeSerialRegexes = includeSerialRegexes ?: emptyList(),
+            excludeSerialRegexes = excludeSerialRegexes ?: emptyList(),
+            ignoreCrashRegexes = ignoreCrashRegexes ?: emptyList(),
+            testBatchTimeoutMillis = testBatchTimeoutMillis ?: DEFAULT_EXECUTION_TIMEOUT_MILLIS,
+            testOutputTimeoutMillis = testOutputTimeoutMillis ?: DEFAULT_OUTPUT_TIMEOUT_MILLIS,
+            debug = debug ?: true,
+            vendorConfiguration = vendorConfiguration,
+            analyticsTracking = analyticsTracking ?: false,
+            pullScreenshotFilterConfiguration = pullScreenshotFilterConfiguration ?: FilteringConfiguration(emptyList(), emptyList())
+        )
 
     fun toMap() =
         mapOf<String, String>(

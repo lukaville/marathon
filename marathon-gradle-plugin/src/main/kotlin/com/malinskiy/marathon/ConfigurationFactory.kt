@@ -102,6 +102,7 @@ private fun createConfiguration(
     isCodeCoverageEnabled = extensionConfig.isCodeCoverageEnabled,
     fallbackToScreenshots = extensionConfig.fallbackToScreenshots,
     strictMode = extensionConfig.strictMode,
+    listener = extensionConfig.listener,
     uncompletedTestRetryQuota = extensionConfig.uncompletedTestRetryQuota,
     testClassRegexes = extensionConfig.testClassRegexes?.map { it.toRegex() },
     includeSerialRegexes = extensionConfig.includeSerialRegexes?.map { it.toRegex() },
