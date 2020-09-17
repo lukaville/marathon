@@ -119,23 +119,19 @@ class AllureReporter(
                 ResultsUtils.createSuiteLabel(suite)
             )
 
-        testResult.stacktrace?.let {
-            val isFlaky = summary?.isFlaky ?: false
-            allureTestResult.setStatusDetails(
-                StatusDetails()
-                    .setMessage(it.lines().take(MESSAGE_LINES_COUNT).joinToString(separator = "\n"))
-                    .setFlaky(isFlaky)
-                    .setTrace(it)
-            )
-        }
+        val shortStacktrace = testResult.stacktrace?.lines()?.take(MESSAGE_LINES_COUNT)?.joinToString(separator = "\n")
+        val isFlaky = summary?.isFlaky ?: false
 
+        allureTestResult.statusDetails = StatusDetails()
+            .setMessage(shortStacktrace)
+            .setFlaky(isFlaky)
+            .setTrace(testResult.stacktrace)
 
         test.findValue<String>(Description::class.java.canonicalName)?.let { allureTestResult.setDescription(it) }
         test.findValue<String>(Issue::class.java.canonicalName)?.let { allureTestResult.links.add(it.toLink()) }
         test.findValue<String>(TmsLink::class.java.canonicalName)?.let { allureTestResult.links.add(it.toLink()) }
 
         allureTestResult.labels.addAll(test.getOptionalLabels())
-
 
         return allureTestResult
     }
