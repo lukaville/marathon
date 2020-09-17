@@ -17,6 +17,7 @@ import com.malinskiy.marathon.test.StubComponentCacheKeyProvider
 import com.malinskiy.marathon.test.StubComponentInfoExtractor
 import com.malinskiy.marathon.test.StubDeviceProvider
 import com.malinskiy.marathon.test.TestVendorConfiguration
+import com.malinskiy.marathon.test.factory.configuration
 import com.nhaarman.mockitokotlin2.inOrder
 import com.nhaarman.mockitokotlin2.reset
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
@@ -35,41 +36,7 @@ object TestResultReporterSpec : Spek(
             reset(track)
         }
 
-        val defaultConfig = Configuration(
-            name = "",
-            outputDir = File(""),
-            analyticsConfiguration = null,
-            customAnalyticsTracker = null,
-            poolingStrategy = null,
-            shardingStrategy = null,
-            sortingStrategy = null,
-            batchingStrategy = null,
-            flakinessStrategy = null,
-            retryStrategy = null,
-            filteringConfiguration = null,
-            strictRunFilterConfiguration = null,
-            cache = null,
-            ignoreFailures = null,
-            isCodeCoverageEnabled = null,
-            fallbackToScreenshots = null,
-            strictMode = null,
-            uncompletedTestRetryQuota = null,
-            testClassRegexes = null,
-            includeSerialRegexes = null,
-            excludeSerialRegexes = null,
-            ignoreCrashRegexes = null,
-            testBatchTimeoutMillis = null,
-            testOutputTimeoutMillis = null,
-            debug = false,
-            vendorConfiguration = TestVendorConfiguration(
-                Mocks.TestParser.DEFAULT,
-                StubDeviceProvider(),
-                StubComponentInfoExtractor(),
-                StubComponentCacheKeyProvider()
-            ),
-            analyticsTracking = false,
-            pullScreenshotFilterConfiguration = null
-        )
+        val defaultConfig = configuration()
         val strictConfig = defaultConfig.copy(strictMode = true)
         val analytics = mock(Analytics::class)
         val test = generateTest()

@@ -21,6 +21,7 @@ import com.malinskiy.marathon.report.logs.LogsProvider
 import com.malinskiy.marathon.report.logs.toLogTest
 import com.malinskiy.marathon.test.TestComponentInfo
 import com.malinskiy.marathon.test.TestVendorConfiguration
+import com.malinskiy.marathon.test.factory.configuration
 import com.nhaarman.mockitokotlin2.KArgumentCaptor
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.argumentCaptor
@@ -351,38 +352,4 @@ private fun createQueueActor(
         }
     }
 
-private val DEFAULT_CONFIGURATION = Configuration(
-    name = "",
-    outputDir = File(""),
-    analyticsConfiguration = null,
-    customAnalyticsTracker = null,
-    poolingStrategy = null,
-    shardingStrategy = null,
-    sortingStrategy = null,
-    batchingStrategy = null,
-    flakinessStrategy = null,
-    retryStrategy = null,
-    filteringConfiguration = null,
-    strictRunFilterConfiguration = null,
-    cache = null,
-    ignoreFailures = null,
-    isCodeCoverageEnabled = null,
-    fallbackToScreenshots = null,
-    strictMode = null,
-    uncompletedTestRetryQuota = null,
-    testClassRegexes = null,
-    includeSerialRegexes = null,
-    excludeSerialRegexes = null,
-    ignoreCrashRegexes = null,
-    testBatchTimeoutMillis = null,
-    testOutputTimeoutMillis = null,
-    debug = null,
-    vendorConfiguration = TestVendorConfiguration(
-        testParser = mock(),
-        deviceProvider = mock(),
-        componentInfoExtractor = mock(),
-        componentCacheKeyProvider = mock()
-    ),
-    analyticsTracking = false,
-    pullScreenshotFilterConfiguration = null
-)
+private val DEFAULT_CONFIGURATION = configuration()

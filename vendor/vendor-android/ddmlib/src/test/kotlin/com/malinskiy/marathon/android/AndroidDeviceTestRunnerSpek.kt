@@ -69,6 +69,7 @@ class AndroidDeviceTestRunnerSpek : Spek(
                     isCodeCoverageEnabled = null,
                     fallbackToScreenshots = null,
                     strictMode = null,
+                    listener = null,
                     uncompletedTestRetryQuota = null,
                     testClassRegexes = null,
                     includeSerialRegexes = null,
