@@ -281,5 +281,5 @@ class HtmlSummaryReporter(
     )
 
     private fun String.urlEncode(): String =
-        URLEncoder.encode(this, StandardCharsets.UTF_8)
+        URLEncoder.encode(this, StandardCharsets.UTF_8.name())
 }

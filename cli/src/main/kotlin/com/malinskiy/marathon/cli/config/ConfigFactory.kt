@@ -59,6 +59,7 @@ class ConfigFactory(private val mapper: ObjectMapper) {
             isCodeCoverageEnabled = config.isCodeCoverageEnabled,
             fallbackToScreenshots = config.fallbackToScreenshots,
             strictMode = config.strictMode,
+            listener = null,
             uncompletedTestRetryQuota = config.uncompletedTestRetryQuota,
             testClassRegexes = config.testClassRegexes,
             includeSerialRegexes = config.includeSerialRegexes,

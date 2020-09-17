@@ -71,16 +71,22 @@ class AllureReporter(
         summary: TestSummary?
     ): io.qameta.allure.model.TestResult {
         val test = testResult.test
-        val fullName = test.toSimpleSafeTestName()
+        val fullName = if (summary?.isFlaky == true) {
+            // TODO: remove this when flaky reporting will be fixed (https://github.com/allure-framework/allure2/pull/1135)
+            "[flaky] " + test.toSimpleSafeTestName()
+        } else {
+            test.toSimpleSafeTestName()
+        }
         val suite = "${test.pkg}.${test.clazz}"
 
-        val status: Status = when (testResult.status) {
-            TestStatus.FAILURE -> Status.FAILED
-            TestStatus.PASSED -> Status.PASSED
-            TestStatus.INCOMPLETE -> Status.BROKEN
-            TestStatus.ASSUMPTION_FAILURE -> Status.SKIPPED
-            TestStatus.IGNORED -> Status.SKIPPED
-        }
+        val status: Status =
+            when (testResult.status) {
+                TestStatus.FAILURE -> Status.FAILED
+                TestStatus.PASSED -> Status.PASSED
+                TestStatus.INCOMPLETE -> Status.BROKEN
+                TestStatus.ASSUMPTION_FAILURE -> Status.SKIPPED
+                TestStatus.IGNORED -> Status.SKIPPED
+            }
 
         val summaryFile = outputDirectory
             .resolve("$uuid-summary.log")
@@ -119,21 +125,19 @@ class AllureReporter(
                 ResultsUtils.createSuiteLabel(suite)
             )
 
-        testResult.stacktrace?.let {
-            allureTestResult.setStatusDetails(
-                StatusDetails()
-                    .setMessage(it.lines().first())
-                    .setTrace(it)
-            )
-        }
+        val shortStacktrace = testResult.stacktrace?.lines()?.take(MESSAGE_LINES_COUNT)?.joinToString(separator = "\n")
+        val isFlaky = summary?.isFlaky ?: false
 
+        allureTestResult.statusDetails = StatusDetails()
+            .setMessage(shortStacktrace)
+            .setFlaky(isFlaky)
+            .setTrace(testResult.stacktrace)
 
         test.findValue<String>(Description::class.java.canonicalName)?.let { allureTestResult.setDescription(it) }
         test.findValue<String>(Issue::class.java.canonicalName)?.let { allureTestResult.links.add(it.toLink()) }
         test.findValue<String>(TmsLink::class.java.canonicalName)?.let { allureTestResult.links.add(it.toLink()) }
 
         allureTestResult.labels.addAll(test.getOptionalLabels())
-
 
         return allureTestResult
     }
@@ -166,5 +170,9 @@ class AllureReporter(
         }
 
         return null
+    }
+
+    private companion object {
+        private const val MESSAGE_LINES_COUNT = 3
     }
 }

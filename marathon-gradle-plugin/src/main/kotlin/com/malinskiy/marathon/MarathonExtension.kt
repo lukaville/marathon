@@ -2,6 +2,7 @@ package com.malinskiy.marathon
 
 import com.malinskiy.marathon.analytics.internal.pub.Tracker
 import com.malinskiy.marathon.device.DeviceFeature
+import com.malinskiy.marathon.execution.MarathonListener
 import groovy.lang.Closure
 import org.gradle.api.Project
 
@@ -17,6 +18,7 @@ open class MarathonExtension(project: Project) {
     var retryStrategy: RetryStrategyConfiguration? = null
     var filteringConfiguration: FilteringPluginConfiguration? = null
     var strictRunFilterConfiguration: StrictRunFilterPluginConfiguration? = null
+    var listener: MarathonListener? = null
 
     var baseOutputDir: String? = null
 

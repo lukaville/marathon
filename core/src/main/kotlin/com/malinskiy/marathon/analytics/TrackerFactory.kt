@@ -21,6 +21,7 @@ import com.malinskiy.marathon.report.html.HtmlSummaryReporter
 import com.malinskiy.marathon.report.junit.FinalJUnitReporter
 import com.malinskiy.marathon.report.junit.JUnitReporter
 import com.malinskiy.marathon.report.junit.JUnitWriter
+import com.malinskiy.marathon.report.listener.ListenerReporter
 import com.malinskiy.marathon.report.logs.LogsProvider
 import com.malinskiy.marathon.report.logs.LogReportTestEventInflator
 import com.malinskiy.marathon.report.raw.RawJsonReporter
@@ -85,7 +86,7 @@ internal class TrackerFactory(
         }
 
         return ExecutionReportGenerator(
-            reporters = listOf(
+            reporters = listOfNotNull(
                 DeviceInfoJsonReporter(fileManager, gson),
                 JUnitReporter(JUnitWriter(fileManager, FileType.TEST, testResultDescriptionFactory)),
                 FinalJUnitReporter(JUnitWriter(fileManager, FileType.TEST_FINAL, testResultDescriptionFactory)),
@@ -95,7 +96,8 @@ internal class TrackerFactory(
                 TestJsonReporter(fileManager, gson),
                 AllureReporter(configuration, File(configuration.outputDir, "allure-results"), testResultDescriptionFactory),
                 HtmlSummaryReporter(gson, configuration.outputDir, configuration, testResultDescriptionFactory),
-                StdoutReporter(timer)
+                StdoutReporter(timer),
+                configuration.listener?.let { ListenerReporter(it) }
             ),
             testEventInflatorsFactory = testEventInflators
         )
