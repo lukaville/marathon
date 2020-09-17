@@ -71,21 +71,21 @@ class AllureReporter(
         summary: TestSummary?
     ): io.qameta.allure.model.TestResult {
         val test = testResult.test
-        val fullName = test.toSimpleSafeTestName()
+        val fullName = if (summary?.isFlaky == true) {
+            // TODO: remove this when flaky reporting will be fixed (https://github.com/allure-framework/allure2/pull/1135)
+            "[flaky] " + test.toSimpleSafeTestName()
+        } else {
+            test.toSimpleSafeTestName()
+        }
         val suite = "${test.pkg}.${test.clazz}"
 
         val status: Status =
-            if (summary?.isFlaky == true) {
-                // TODO: remove this when flaky reporting will be fixed (https://github.com/allure-framework/allure2/pull/1135)
-                Status.BROKEN
-            } else {
-                when (testResult.status) {
-                    TestStatus.FAILURE -> Status.FAILED
-                    TestStatus.PASSED -> Status.PASSED
-                    TestStatus.INCOMPLETE -> Status.BROKEN
-                    TestStatus.ASSUMPTION_FAILURE -> Status.SKIPPED
-                    TestStatus.IGNORED -> Status.SKIPPED
-                }
+            when (testResult.status) {
+                TestStatus.FAILURE -> Status.FAILED
+                TestStatus.PASSED -> Status.PASSED
+                TestStatus.INCOMPLETE -> Status.BROKEN
+                TestStatus.ASSUMPTION_FAILURE -> Status.SKIPPED
+                TestStatus.IGNORED -> Status.SKIPPED
             }
 
         val summaryFile = outputDirectory

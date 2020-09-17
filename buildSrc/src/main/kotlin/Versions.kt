@@ -43,7 +43,7 @@ object Versions {
     val jupiterEngine = "5.1.0"
     val jansi = "1.17.1"
     val scalr = "4.2"
-    val allure = "2.8.1"
+    val allure = "2.13.5"
     val allureEnvironment = "1.0.0"
     val mockitoKotlin = "2.0.0"
     val googleAnalitycsWrapper = "2.0.0"
