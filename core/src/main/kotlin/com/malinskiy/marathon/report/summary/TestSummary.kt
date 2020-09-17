@@ -10,10 +10,10 @@ data class TestSummary(
     val batches: List<Batch>
 ) {
 
-    val isFlaky: Boolean
-        get() {
-            val hasSuccessResult = results.any { it.status == TestStatus.PASSED }
-            val hasFailedResult = results.any { it.status == TestStatus.FAILURE }
-            return hasSuccessResult && hasFailedResult
-        }
+    val isFlaky: Boolean by lazy {
+        val hasSuccessResult = results.any { it.status == TestStatus.PASSED }
+        val hasFailedResult = results.any { it.status == TestStatus.FAILURE }
+        hasSuccessResult && hasFailedResult
+    }
+
 }
