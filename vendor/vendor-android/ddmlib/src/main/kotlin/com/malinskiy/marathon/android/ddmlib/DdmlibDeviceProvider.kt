@@ -66,6 +66,8 @@ class DdmlibDeviceProvider(
 
         listener = object : AndroidDebugBridge.IDeviceChangeListener {
             override fun deviceChanged(device: IDevice?, changeMask: Int) {
+                logger.debug { "Device changed: $device" }
+
                 device?.let {
                     launch(context = bootWaitContext) {
                         val maybeNewAndroidDevice =
@@ -90,6 +92,7 @@ class DdmlibDeviceProvider(
                             notifyConnected(androidDevice)
                         } else {
                             //This shouldn't have any side effects even if device was previously removed
+                            logger.debug { "Device is not healthy, notifying disconnected $device" }
                             notifyDisconnected(maybeNewAndroidDevice)
                         }
                     }
@@ -97,6 +100,8 @@ class DdmlibDeviceProvider(
             }
 
             override fun deviceConnected(device: IDevice?) {
+                logger.debug { "Device connected: $device" }
+
                 device?.let {
                     launch {
                         val maybeNewAndroidDevice = DdmlibAndroidDevice(
@@ -165,7 +170,10 @@ class DdmlibDeviceProvider(
             }
 
             private fun notifyConnected(device: DdmlibAndroidDevice) {
+                logger.debug { "Notify device connected $device" }
+
                 launch {
+                    logger.debug { "Send DeviceConnected message for $device" }
                     channel.send(DeviceConnected(device))
                 }
             }
@@ -180,10 +188,13 @@ class DdmlibDeviceProvider(
         }
         AndroidDebugBridge.addDeviceChangeListener(listener)
         adb = AndroidDebugBridge.createBridge(absolutePath, false)
+        logger.debug { "Created ADB bridge" }
 
         var getDevicesCountdown = DEFAULT_DDM_LIB_TIMEOUT
         val sleepTime = DEFAULT_DDM_LIB_SLEEP_TIME
         while (!adb.hasInitialDeviceList() || !adb.hasDevices() && getDevicesCountdown >= 0) {
+            logger.debug { "No devices, waiting..." }
+
             try {
                 Thread.sleep(sleepTime.toLong())
             } catch (e: InterruptedException) {
@@ -205,8 +216,11 @@ class DdmlibDeviceProvider(
         val newAndroidDevice = devices.getOrPut(androidDevice.serialNumber) {
             androidDevice
         }
+
         if (newAndroidDevice != androidDevice) {
+            logger.debug { "There was a device with the same serial number as the new device ($newAndroidDevice), disposing old device" }
             androidDevice.dispose()
+            logger.debug { "Old device disposed ($androidDevice)" }
         }
 
         return newAndroidDevice
