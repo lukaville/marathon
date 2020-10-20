@@ -203,9 +203,14 @@ class DdmlibDeviceProvider(
             getDevicesCountdown -= sleepTime
         }
 
+        logger.debug { "Finished waiting for device list" }
+
         adb.devices.forEach {
+            logger.debug { "Notifying inital connected list: $it" }
             listener.deviceConnected(it)
         }
+
+        logger.debug { "Finished notifying" }
 
         if (!adb.hasInitialDeviceList() || !adb.hasDevices()) {
             throw NoDevicesException("No devices found.")

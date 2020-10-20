@@ -48,6 +48,8 @@ class Marathon(
     private val track: Track
 ) : MarathonRunner {
 
+    private val logger = MarathonLogging.logger("Marathon")
+
     private val configurationValidator = LogicalConfigurationValidator()
     private val strictRunProcessor = StrictRunProcessor(configuration.strictRunFilterConfiguration)
 
@@ -123,6 +125,7 @@ class Marathon(
 
         testParser = loadTestParser(configuration.vendorConfiguration)
         deviceProvider = loadDeviceProvider(configuration.vendorConfiguration)
+        logger.debug { "Finished loading device provider" }
 
         configurationValidator.validate(configuration)
 
@@ -141,6 +144,8 @@ class Marathon(
             currentCoroutineContext
         )
 
+        logger.debug { "Created scheduler" }
+
         if (configuration.outputDir.exists()) {
             log.info { "Output ${configuration.outputDir} already exists" }
             configuration.outputDir.deleteRecursively()
@@ -148,6 +153,7 @@ class Marathon(
         configuration.outputDir.mkdirs()
 
         hook = installShutdownHook { onFinish(analytics, deviceProvider, attachmentManager) }
+
         scheduler.initialize()
     }
 
