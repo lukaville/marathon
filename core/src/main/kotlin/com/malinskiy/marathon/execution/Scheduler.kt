@@ -57,11 +57,17 @@ class Scheduler(
     private val scope: CoroutineScope = CoroutineScope(context)
 
     suspend fun initialize() {
+        logger.debug { "Initializing scheduler" }
+
         subscribeOnDevices(job)
+        logger.debug { "Subscribed to devices" }
+
         subscribeToCacheController()
+        logger.debug { "Subscribed to cache controller" }
 
         cacheLoader.initialize(scope)
         cacheSaver.initialize(scope)
+        logger.debug { "Initialized cache" }
 
         try {
             withTimeout(deviceProvider.deviceInitializationTimeoutMillis) {
@@ -70,6 +76,8 @@ class Scheduler(
                 }
             }
         } catch (e: TimeoutCancellationException) {
+            logger.debug { "Timeout waiting for non-empty pools" }
+
             job.cancelAndJoin()
             throw NoDevicesException("")
         }
@@ -114,6 +122,8 @@ class Scheduler(
 
     private fun subscribeOnDevices(job: Job): Job {
         return scope.launch {
+            logger.debug { "Reading messages from device provider" }
+
             for (msg in deviceProvider.subscribe()) {
                 when (msg) {
                     is DeviceProvider.DeviceEvent.DeviceConnected -> {
@@ -124,6 +134,8 @@ class Scheduler(
                     }
                 }
             }
+
+            logger.debug { "Finished reading messages from device provider" }
         }
     }
 
