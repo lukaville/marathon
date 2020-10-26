@@ -13,6 +13,7 @@ import com.malinskiy.marathon.device.DeviceProvider
 import com.malinskiy.marathon.device.DeviceProvider.DeviceEvent.DeviceConnected
 import com.malinskiy.marathon.device.DeviceProvider.DeviceEvent.DeviceDisconnected
 import com.malinskiy.marathon.exceptions.NoDevicesException
+import com.malinskiy.marathon.execution.Configuration
 import com.malinskiy.marathon.execution.StrictRunChecker
 import com.malinskiy.marathon.io.AttachmentManager
 import com.malinskiy.marathon.io.FileManager
@@ -36,6 +37,7 @@ private const val DEFAULT_DDM_LIB_SLEEP_TIME = 500
 class DdmlibDeviceProvider(
     private val track: Track,
     private val timer: Timer,
+    private val config: Configuration,
     private val androidAppInstaller: AndroidAppInstaller,
     private val fileManager: FileManager,
     private val strictRunChecker: StrictRunChecker,
@@ -190,7 +192,7 @@ class DdmlibDeviceProvider(
         adb = AndroidDebugBridge.createBridge(absolutePath, false)
         logger.debug { "Created ADB bridge" }
 
-        var getDevicesCountdown = DEFAULT_DDM_LIB_TIMEOUT
+        var getDevicesCountdown = config.noDevicesTimeoutMillis
         val sleepTime = DEFAULT_DDM_LIB_SLEEP_TIME
         while (!adb.hasInitialDeviceList() || !adb.hasDevices() && getDevicesCountdown >= 0) {
             logger.debug { "No devices, waiting..." }

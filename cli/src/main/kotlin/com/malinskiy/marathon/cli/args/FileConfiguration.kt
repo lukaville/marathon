@@ -41,6 +41,7 @@ data class FileConfiguration(
 
     var testBatchTimeoutMillis: Long?,
     var testOutputTimeoutMillis: Long?,
+    var noDevicesTimeoutMillis: Long?,
     var debug: Boolean?,
 
     var vendorConfiguration: FileVendorConfiguration?,

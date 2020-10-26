@@ -17,6 +17,7 @@ import com.malinskiy.marathon.vendor.VendorConfiguration
 import java.io.File
 
 private const val DEFAULT_EXECUTION_TIMEOUT_MILLIS: Long = 900_000
+private const val DEFAULT_NO_DEVICES_TIMEOUT_MILLIS: Long = 300_000
 private const val DEFAULT_OUTPUT_TIMEOUT_MILLIS: Long = 60_000
 
 data class Configuration constructor(
@@ -50,6 +51,7 @@ data class Configuration constructor(
 
     val testBatchTimeoutMillis: Long,
     val testOutputTimeoutMillis: Long,
+    val noDevicesTimeoutMillis: Long,
     val debug: Boolean,
 
     val vendorConfiguration: VendorConfiguration,
@@ -88,6 +90,7 @@ data class Configuration constructor(
 
         testBatchTimeoutMillis: Long?,
         testOutputTimeoutMillis: Long?,
+        noDevicesTimeoutMillis: Long?,
         debug: Boolean?,
 
         vendorConfiguration: VendorConfiguration,
@@ -121,6 +124,7 @@ data class Configuration constructor(
             ignoreCrashRegexes = ignoreCrashRegexes ?: emptyList(),
             testBatchTimeoutMillis = testBatchTimeoutMillis ?: DEFAULT_EXECUTION_TIMEOUT_MILLIS,
             testOutputTimeoutMillis = testOutputTimeoutMillis ?: DEFAULT_OUTPUT_TIMEOUT_MILLIS,
+            noDevicesTimeoutMillis = noDevicesTimeoutMillis ?: DEFAULT_NO_DEVICES_TIMEOUT_MILLIS,
             debug = debug ?: true,
             vendorConfiguration = vendorConfiguration,
             analyticsTracking = analyticsTracking ?: false,
@@ -150,6 +154,7 @@ data class Configuration constructor(
             "excludeSerialRegexes" to excludeSerialRegexes.toString(),
             "testBatchTimeoutMillis" to testBatchTimeoutMillis.toString(),
             "testOutputTimeoutMillis" to testOutputTimeoutMillis.toString(),
+            "noDevicesTimeoutMillis" to noDevicesTimeoutMillis.toString(),
             "debug" to debug.toString(),
             "vendorConfiguration" to vendorConfiguration.toString(),
             "analyticsTracking" to analyticsTracking.toString(),

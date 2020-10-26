@@ -110,6 +110,7 @@ private fun createConfiguration(
     ignoreCrashRegexes = extensionConfig.ignoreCrashRegexes?.map { it.toRegex(RegexOption.DOT_MATCHES_ALL) },
     testBatchTimeoutMillis = extensionConfig.testBatchTimeoutMillis,
     testOutputTimeoutMillis = extensionConfig.testOutputTimeoutMillis,
+    noDevicesTimeoutMillis = extensionConfig.noDevicesTimeoutMillis,
     debug = extensionConfig.debug,
     vendorConfiguration = createAndroidConfiguration(extensionConfig, applicationApk, instrumentationApk, sdkDirectory),
     analyticsTracking = extensionConfig.analyticsTracking

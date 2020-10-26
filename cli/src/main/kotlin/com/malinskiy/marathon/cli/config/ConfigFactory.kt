@@ -67,6 +67,7 @@ class ConfigFactory(private val mapper: ObjectMapper) {
             ignoreCrashRegexes = config.ignoreCrashRegexes,
             testBatchTimeoutMillis = config.testBatchTimeoutMillis,
             testOutputTimeoutMillis = config.testOutputTimeoutMillis,
+            noDevicesTimeoutMillis = config.noDevicesTimeoutMillis,
             debug = config.debug,
             vendorConfiguration = vendorConfiguration as VendorConfiguration,
             analyticsTracking = config.analyticsTracking,

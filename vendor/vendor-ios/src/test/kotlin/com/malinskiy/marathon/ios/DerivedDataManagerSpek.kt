@@ -95,6 +95,7 @@ object DerivedDataManagerSpek : Spek(
                     ignoreCrashRegexes = null,
                     testBatchTimeoutMillis = null,
                     testOutputTimeoutMillis = null,
+                    noDevicesTimeoutMillis = null,
                     debug = false,
                     vendorConfiguration = IOSConfiguration(
                         derivedDataDir = derivedDataDir,
