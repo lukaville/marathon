@@ -30,9 +30,11 @@ import java.nio.file.Paths
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 import kotlin.coroutines.CoroutineContext
+import java.util.concurrent.atomic.AtomicBoolean
 
 private const val DEFAULT_DDM_LIB_TIMEOUT = 30000
 private const val DEFAULT_DDM_LIB_SLEEP_TIME = 500
+private const val PRINT_LOG_TIMEOUT = 20000L
 
 class DdmlibDeviceProvider(
     private val track: Track,
@@ -214,9 +216,33 @@ class DdmlibDeviceProvider(
 
         logger.debug { "Finished notifying" }
 
-        if (!adb.hasInitialDeviceList() || !adb.hasDevices()) {
+        if (!adb.hasInitialDeviceList() || printStackTraceAfterTimeout(PRINT_LOG_TIMEOUT) { !adb.hasDevices() }) {
+            logger.debug { "Throwing no devices exception in DdmlibDeviceProvider" }
             throw NoDevicesException("No devices found.")
         }
+
+        logger.debug { "Finished DdmlibDeviceProvider initialization" }
+    }
+
+    private fun <T> printStackTraceAfterTimeout(timeoutMillis: Long, block: () -> T): T {
+        val currentThread = Thread.currentThread()
+        val isBlockFinished = AtomicBoolean(false)
+
+        Thread {
+            Thread.sleep(timeoutMillis)
+            if (!isBlockFinished.get() && currentThread.isAlive) {
+                logger.debug { "Task is not finished within timeout. Printing thread stacktrace:" }
+                currentThread
+                    .stackTrace
+                    .forEach { logger.debug { it } }
+            }
+        }.start()
+
+        val result = block()
+
+        isBlockFinished.set(true)
+
+        return result
     }
 
     private fun getDeviceOrPut(androidDevice: DdmlibAndroidDevice): DdmlibAndroidDevice {
