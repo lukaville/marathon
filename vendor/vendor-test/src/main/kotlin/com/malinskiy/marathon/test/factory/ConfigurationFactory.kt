@@ -59,6 +59,7 @@ class ConfigurationFactory {
     var testClassRegexes: Collection<Regex>? = null
     var testBatchTimeoutMillis: Long? = null
     var testOutputTimeoutMillis: Long? = null
+    var noDevicesTimeoutMillis: Long? = null
     var analyticsTracking: Boolean = false
 
     fun tests(block: () -> List<Test>) {
@@ -99,6 +100,7 @@ class ConfigurationFactory {
             ignoreCrashRegexes = ignoreCrashRegexes,
             testBatchTimeoutMillis = testBatchTimeoutMillis,
             testOutputTimeoutMillis = testOutputTimeoutMillis,
+            noDevicesTimeoutMillis = noDevicesTimeoutMillis,
             debug = debug,
             vendorConfiguration = vendorConfiguration,
             analyticsTracking = analyticsTracking

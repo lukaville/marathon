@@ -47,6 +47,7 @@ object IOSTestParserSpek : Spek(
                     ignoreCrashRegexes = null,
                     testBatchTimeoutMillis = null,
                     testOutputTimeoutMillis = null,
+                    noDevicesTimeoutMillis = null,
                     listener = null,
                     debug = null,
                     vendorConfiguration = IOSConfiguration(

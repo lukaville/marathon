@@ -13,6 +13,7 @@ import com.malinskiy.marathon.device.DeviceProvider
 import com.malinskiy.marathon.device.DeviceProvider.DeviceEvent.DeviceConnected
 import com.malinskiy.marathon.device.DeviceProvider.DeviceEvent.DeviceDisconnected
 import com.malinskiy.marathon.exceptions.NoDevicesException
+import com.malinskiy.marathon.execution.Configuration
 import com.malinskiy.marathon.execution.StrictRunChecker
 import com.malinskiy.marathon.io.AttachmentManager
 import com.malinskiy.marathon.io.FileManager
@@ -29,13 +30,16 @@ import java.nio.file.Paths
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 import kotlin.coroutines.CoroutineContext
+import java.util.concurrent.atomic.AtomicBoolean
 
 private const val DEFAULT_DDM_LIB_TIMEOUT = 30000
 private const val DEFAULT_DDM_LIB_SLEEP_TIME = 500
+private const val PRINT_LOG_TIMEOUT = 20000L
 
 class DdmlibDeviceProvider(
     private val track: Track,
     private val timer: Timer,
+    private val config: Configuration,
     private val androidAppInstaller: AndroidAppInstaller,
     private val fileManager: FileManager,
     private val strictRunChecker: StrictRunChecker,
@@ -66,6 +70,8 @@ class DdmlibDeviceProvider(
 
         listener = object : AndroidDebugBridge.IDeviceChangeListener {
             override fun deviceChanged(device: IDevice?, changeMask: Int) {
+                logger.debug { "Device changed: $device" }
+
                 device?.let {
                     launch(context = bootWaitContext) {
                         val maybeNewAndroidDevice =
@@ -90,6 +96,7 @@ class DdmlibDeviceProvider(
                             notifyConnected(androidDevice)
                         } else {
                             //This shouldn't have any side effects even if device was previously removed
+                            logger.debug { "Device is not healthy, notifying disconnected $device" }
                             notifyDisconnected(maybeNewAndroidDevice)
                         }
                     }
@@ -97,6 +104,8 @@ class DdmlibDeviceProvider(
             }
 
             override fun deviceConnected(device: IDevice?) {
+                logger.debug { "Device connected: $device" }
+
                 device?.let {
                     launch {
                         val maybeNewAndroidDevice = DdmlibAndroidDevice(
@@ -165,7 +174,10 @@ class DdmlibDeviceProvider(
             }
 
             private fun notifyConnected(device: DdmlibAndroidDevice) {
+                logger.debug { "Notify device connected $device" }
+
                 launch {
+                    logger.debug { "Send DeviceConnected message for $device" }
                     channel.send(DeviceConnected(device))
                 }
             }
@@ -180,10 +192,13 @@ class DdmlibDeviceProvider(
         }
         AndroidDebugBridge.addDeviceChangeListener(listener)
         adb = AndroidDebugBridge.createBridge(absolutePath, false)
+        logger.debug { "Created ADB bridge" }
 
-        var getDevicesCountdown = DEFAULT_DDM_LIB_TIMEOUT
+        var getDevicesCountdown = config.noDevicesTimeoutMillis
         val sleepTime = DEFAULT_DDM_LIB_SLEEP_TIME
         while (!adb.hasInitialDeviceList() || !adb.hasDevices() && getDevicesCountdown >= 0) {
+            logger.debug { "No devices, waiting..." }
+
             try {
                 Thread.sleep(sleepTime.toLong())
             } catch (e: InterruptedException) {
@@ -192,21 +207,53 @@ class DdmlibDeviceProvider(
             getDevicesCountdown -= sleepTime
         }
 
+        logger.debug { "Finished waiting for device list" }
+
         adb.devices.forEach {
+            logger.debug { "Notifying inital connected list: $it" }
             listener.deviceConnected(it)
         }
 
-        if (!adb.hasInitialDeviceList() || !adb.hasDevices()) {
+        logger.debug { "Finished notifying" }
+
+        if (!adb.hasInitialDeviceList() || printStackTraceAfterTimeout(PRINT_LOG_TIMEOUT) { !adb.hasDevices() }) {
+            logger.debug { "Throwing no devices exception in DdmlibDeviceProvider" }
             throw NoDevicesException("No devices found.")
         }
+
+        logger.debug { "Finished DdmlibDeviceProvider initialization" }
+    }
+
+    private fun <T> printStackTraceAfterTimeout(timeoutMillis: Long, block: () -> T): T {
+        val currentThread = Thread.currentThread()
+        val isBlockFinished = AtomicBoolean(false)
+
+        Thread {
+            Thread.sleep(timeoutMillis)
+            if (!isBlockFinished.get() && currentThread.isAlive) {
+                logger.debug { "Task is not finished within timeout. Printing thread stacktrace:" }
+                currentThread
+                    .stackTrace
+                    .forEach { logger.debug { it } }
+            }
+        }.start()
+
+        val result = block()
+
+        isBlockFinished.set(true)
+
+        return result
     }
 
     private fun getDeviceOrPut(androidDevice: DdmlibAndroidDevice): DdmlibAndroidDevice {
         val newAndroidDevice = devices.getOrPut(androidDevice.serialNumber) {
             androidDevice
         }
+
         if (newAndroidDevice != androidDevice) {
+            logger.debug { "There was a device with the same serial number as the new device ($newAndroidDevice), disposing old device" }
             androidDevice.dispose()
+            logger.debug { "Old device disposed ($androidDevice)" }
         }
 
         return newAndroidDevice

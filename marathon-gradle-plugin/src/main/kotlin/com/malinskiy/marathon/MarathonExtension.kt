@@ -36,6 +36,7 @@ open class MarathonExtension(project: Project) {
 
     var testBatchTimeoutMillis: Long? = null
     var testOutputTimeoutMillis: Long? = null
+    var noDevicesTimeoutMillis: Long? = null
     var debug: Boolean? = null
 
     var applicationPmClear: Boolean? = null

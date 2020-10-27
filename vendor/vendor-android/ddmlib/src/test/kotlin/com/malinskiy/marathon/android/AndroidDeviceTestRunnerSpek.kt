@@ -77,6 +77,7 @@ class AndroidDeviceTestRunnerSpek : Spek(
                     ignoreCrashRegexes = null,
                     testBatchTimeoutMillis = null,
                     testOutputTimeoutMillis = null,
+                    noDevicesTimeoutMillis = null,
                     debug = null,
                     vendorConfiguration = AndroidConfiguration(
                         File(""),
