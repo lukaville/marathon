@@ -14,6 +14,7 @@ import com.malinskiy.marathon.execution.TestShard
 import com.malinskiy.marathon.execution.progress.ProgressReporter
 import com.malinskiy.marathon.log.MarathonLogging
 import com.malinskiy.marathon.report.logs.BatchLogs
+import com.malinskiy.marathon.report.logs.Log
 import com.malinskiy.marathon.report.logs.LogEvent
 import com.malinskiy.marathon.report.logs.LogsProvider
 import com.malinskiy.marathon.report.logs.toLogTest
@@ -103,7 +104,7 @@ class QueueActor(
 
     private suspend fun updateUncompletedTests(results: TestBatchResults): TestBatchResults {
         val batchId = results.batchId
-        val batchLogs = logProvider.getBatchReport(batchId) ?: return results
+        val batchLogs = logProvider.getBatchReport(batchId) ?: null
             .also {
                 logger.warn { "no logs for batch = $batchId" }
             }
@@ -122,15 +123,28 @@ class QueueActor(
         )
     }
 
-    private fun Iterable<TestResult>.partitionIgnoredFailures(batchLogs: BatchLogs): Pair<List<TestResult>, List<TestResult>> =
+    private fun Iterable<TestResult>.partitionIgnoredFailures(batchLogs: BatchLogs?): Pair<List<TestResult>, List<TestResult>> =
         partition {
-            val testLog = batchLogs.tests[it.test.toLogTest()] ?: return@partition false
-            testLog
-                .events
-                .any { logEvent ->
-                    logEvent is LogEvent.Crash && configuration.ignoreCrashRegexes.any { regexp -> regexp.matches(logEvent.message) }
-                }
+            if (it.hasIgnoredFailureStackTrace()) {
+                true
+            } else {
+                val log = batchLogs?.tests?.get(it.test.toLogTest())
+                log?.hasIgnoredCrashLogEvent() ?: false
+            }
         }
+
+    private fun TestResult.hasIgnoredFailureStackTrace(): Boolean =
+        stacktrace
+            ?.let { stacktrace ->
+                configuration.ignoreFailureRegexes.any { regexp -> regexp.matches(stacktrace) }
+            }
+            ?: false
+
+    private fun Log.hasIgnoredCrashLogEvent(): Boolean =
+        events
+            .any { logEvent ->
+                logEvent is LogEvent.Crash && configuration.ignoreFailureRegexes.any { regexp -> regexp.matches(logEvent.message) }
+            }
 
     private suspend fun handleCompletedBatch(device: DeviceInfo, results: TestBatchResults) {
         val (uncompletedRetryQuotaExceeded, uncompleted) = results.uncompleted.partition {

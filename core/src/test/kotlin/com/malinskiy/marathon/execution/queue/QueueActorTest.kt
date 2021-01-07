@@ -20,7 +20,6 @@ import com.malinskiy.marathon.report.logs.LogEvent
 import com.malinskiy.marathon.report.logs.LogsProvider
 import com.malinskiy.marathon.report.logs.toLogTest
 import com.malinskiy.marathon.test.TestComponentInfo
-import com.malinskiy.marathon.test.TestVendorConfiguration
 import com.malinskiy.marathon.test.factory.configuration
 import com.nhaarman.mockitokotlin2.KArgumentCaptor
 import com.nhaarman.mockitokotlin2.any
@@ -179,8 +178,8 @@ class QueueActorTest {
     }
 
     @Test
-    fun `failed test that matches crash filter - crashes after uncompleted quota reached - should report test as failed`() {
-        failed_test_matches_crash_filter_with_uncompleted_retry_quota_1_and_batch_size_1()
+    fun `failed test with log event that matches crash filter - crashes after uncompleted quota reached - should report test as failed`() {
+        failed_test_with_crash_log_matches_crash_filter_with_uncompleted_retry_quota_1_and_batch_size_1()
 
         runBlocking {
             actor.send(QueueMessage.RequestBatch(TEST_DEVICE_INFO))
@@ -198,8 +197,42 @@ class QueueActorTest {
     }
 
     @Test
-    fun `failed test that matches crash filter - should provide uncompleted test in the batch`() {
-        failed_test_matches_crash_filter_with_uncompleted_retry_quota_1_and_batch_size_1()
+    fun `failed test with log event that matches crash filter - should provide uncompleted test in the batch`() {
+        failed_test_with_crash_log_matches_crash_filter_with_uncompleted_retry_quota_1_and_batch_size_1()
+
+        runBlocking {
+            actor.send(QueueMessage.RequestBatch(TEST_DEVICE_INFO))
+            poolChannel.receive()
+            actor.send(QueueMessage.Completed(TEST_DEVICE_INFO, testBatchResults))
+            actor.send(QueueMessage.RequestBatch(TEST_DEVICE_INFO))
+            val response = poolChannel.receive()
+            response::class shouldBe FromQueue.ExecuteBatch::class
+            (response as FromQueue.ExecuteBatch).batch.tests shouldContainSame listOf(TEST_1)
+        }
+    }
+
+    @Test
+    fun `failed test with stacktrace that matches crash filter - crashes after uncompleted quota reached - should report test as failed`() {
+        failed_test_with_stacktrace_matches_crash_filter_with_uncompleted_retry_quota_1_and_batch_size_1()
+
+        runBlocking {
+            actor.send(QueueMessage.RequestBatch(TEST_DEVICE_INFO))
+            poolChannel.receive()
+            actor.send(QueueMessage.Completed(TEST_DEVICE_INFO, testBatchResults))
+
+            actor.send(QueueMessage.RequestBatch(TEST_DEVICE_INFO))
+            poolChannel.receive()
+            actor.send(QueueMessage.Completed(TEST_DEVICE_INFO, testBatchResults))
+
+            verify(track).test(any(), any(), testResultCaptor.capture(), any())
+            testResultCaptor.firstValue.test shouldBe TEST_1
+            testResultCaptor.firstValue.status shouldBe TestStatus.FAILURE
+        }
+    }
+
+    @Test
+    fun `failed test with stacktrace that matches crash filter - should provide uncompleted test in the batch`() {
+        failed_test_with_stacktrace_matches_crash_filter_with_uncompleted_retry_quota_1_and_batch_size_1()
 
         runBlocking {
             actor.send(QueueMessage.RequestBatch(TEST_DEVICE_INFO))
@@ -260,7 +293,7 @@ class QueueActorTest {
         )
     }
 
-    private fun failed_test_matches_crash_filter_with_uncompleted_retry_quota_1_and_batch_size_1() {
+    private fun failed_test_with_crash_log_matches_crash_filter_with_uncompleted_retry_quota_1_and_batch_size_1() {
         val crashEvent = LogEvent.Crash(message = "Process exited with signal 11 (SIGSEGV)")
         val log = Log(File(""), listOf(crashEvent))
         val logsProvider = TestLogsProvider(
@@ -278,7 +311,7 @@ class QueueActorTest {
                 configuration = DEFAULT_CONFIGURATION.copy(
                     uncompletedTestRetryQuota = 1,
                     batchingStrategy = FixedSizeBatchingStrategy(size = 1),
-                    ignoreCrashRegexes = listOf(".*SIGSEGV.*".toRegex(RegexOption.DOT_MATCHES_ALL))
+                    ignoreFailureRegexes = listOf(".*SIGSEGV.*".toRegex(RegexOption.DOT_MATCHES_ALL))
                 ),
                 tests = listOf(TEST_1),
                 poolChannel = poolChannel,
@@ -287,10 +320,34 @@ class QueueActorTest {
                 job = job,
                 track = track
             )
-        testResultCaptor = argumentCaptor<TestResult>()
+        testResultCaptor = argumentCaptor()
         testBatchResults = createBatchResult(
             failed = listOf(
                 createTestResult(TEST_1, TestStatus.FAILURE)
+            )
+        )
+    }
+
+    private fun failed_test_with_stacktrace_matches_crash_filter_with_uncompleted_retry_quota_1_and_batch_size_1() {
+        val logsProvider = TestLogsProvider(emptyMap())
+        actor =
+            createQueueActor(
+                configuration = DEFAULT_CONFIGURATION.copy(
+                    uncompletedTestRetryQuota = 1,
+                    batchingStrategy = FixedSizeBatchingStrategy(size = 1),
+                    ignoreFailureRegexes = listOf(".*UiAutomation not connected.*".toRegex(RegexOption.DOT_MATCHES_ALL))
+                ),
+                tests = listOf(TEST_1),
+                poolChannel = poolChannel,
+                analytics = analytics,
+                logsProvider = logsProvider,
+                job = job,
+                track = track
+            )
+        testResultCaptor = argumentCaptor()
+        testBatchResults = createBatchResult(
+            failed = listOf(
+                createTestResult(TEST_1, TestStatus.FAILURE, stacktrace = "java.lang.IllegalStateException: UiAutomation not connected!")
             )
         )
     }
@@ -314,13 +371,13 @@ private fun createBatchResult(
     uncompleted
 )
 
-private fun createTestResult(test: com.malinskiy.marathon.test.Test, status: TestStatus) = TestResult(
+private fun createTestResult(test: com.malinskiy.marathon.test.Test, status: TestStatus, stacktrace: String? = null) = TestResult(
     test = test,
     device = TEST_DEVICE_INFO,
     status = status,
     startTime = 0,
     endTime = 0,
-    stacktrace = null,
+    stacktrace = stacktrace,
     attachments = emptyList(),
     batchId = "test_batch_id"
 )

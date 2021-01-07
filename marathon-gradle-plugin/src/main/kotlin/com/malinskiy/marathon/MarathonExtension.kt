@@ -32,7 +32,7 @@ open class MarathonExtension(project: Project) {
     var testClassRegexes: Collection<String>? = null
     var includeSerialRegexes: Collection<String>? = null
     var excludeSerialRegexes: Collection<String>? = null
-    var ignoreCrashRegexes: Collection<String>? = null
+    var ignoreFailureRegexes: Collection<String>? = null
 
     var testBatchTimeoutMillis: Long? = null
     var testOutputTimeoutMillis: Long? = null
